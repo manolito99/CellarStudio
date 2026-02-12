@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker-compose build:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker-compose ps:*)",
+      "Bash(curl:*)",
+      "Bash(docker-compose logs:*)",
+      "Bash(docker-compose restart:*)",
+      "Bash(python -m json.tool:*)",
+      "Bash(ipconfig:*)",
+      "Bash(findstr:*)",
+      "Bash(ls:*)",
+      "Bash(if not exist \"C:\\\\Users\\\\ManuelOtero\\\\Documents\\\\MaxiBarber\\\\frontend\\\\public\\\\icons\" mkdir \"C:\\\\Users\\\\ManuelOtero\\\\Documents\\\\MaxiBarber\\\\frontend\\\\public\\\\icons\")",
+      "Bash(dir:*)",
+      "Bash(docker-compose down:*)",
+      "Bash(gh auth:*)",
+      "Bash(where:*)",
+      "Bash(git config:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git status:*)"
+    ]
+  }
+}

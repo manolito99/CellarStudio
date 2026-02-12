@@ -1,0 +1,7 @@
+{
+  "name": "cellarstudio",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}

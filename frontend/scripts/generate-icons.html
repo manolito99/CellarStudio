@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generar Iconos PWA</title></head>
+<body>
+<h2>Generador de iconos PWA - MaxiBarber</h2>
+<p>Hacé click en cada botón para descargar el icono:</p>
+<div id="buttons"></div>
+<canvas id="canvas" style="display:none"></canvas>
+<script>
+const sizes = [72, 96, 128, 144, 152, 192, 384, 512]
+const canvas = document.getElementById('canvas')
+const ctx = canvas.getContext('2d')
+const container = document.getElementById('buttons')
+
+sizes.forEach(size => {
+  const btn = document.createElement('button')
+  btn.textContent = `Descargar icon-${size}.png`
+  btn.style.cssText = 'display:block;margin:8px 0;padding:8px 16px;cursor:pointer'
+  btn.onclick = () => generateIcon(size)
+  container.appendChild(btn)
+})
+
+function generateIcon(size) {
+  canvas.width = size
+  canvas.height = size
+  const r = size * 0.15
+
+  // Background
+  ctx.fillStyle = '#0d0d0d'
+  ctx.beginPath()
+  ctx.roundRect(0, 0, size, size, r)
+  ctx.fill()
+
+  // "M" letter
+  ctx.fillStyle = '#e09a3e'
+  ctx.font = `bold ${size * 0.38}px serif`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('M', size / 2, size * 0.36)
+
+  // "BARBER" text
+  ctx.fillStyle = '#ffffff'
+  ctx.font = `600 ${size * 0.1}px sans-serif`
+  ctx.fillText('BARBER', size / 2, size * 0.62)
+
+  // Line
+  ctx.fillStyle = '#e09a3e'
+  ctx.fillRect(size * 0.3, size * 0.69, size * 0.4, size * 0.01)
+
+  // Download
+  const link = document.createElement('a')
+  link.download = `icon-${size}.png`
+  link.href = canvas.toDataURL('image/png')
+  link.click()
+}
+</script>
+</body>
+</html>
