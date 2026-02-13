@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h3 class="text-2xl font-heading font-bold text-[#2B2E2E] mb-2">Elegí fecha y hora</h3>
+    <h3 class="text-2xl font-heading font-bold text-[#1d1d1f] mb-2">Elegí fecha y hora</h3>
     <p class="text-dark-400 mb-6">Seleccioná cuándo querés tu cita</p>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -12,7 +12,7 @@
           :value="selectedDate"
           :min="minDate"
           @input="onDateChange"
-          class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-[#2B2E2E] focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400"
+          class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-[#1d1d1f] focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400"
         />
       </div>
 
@@ -21,7 +21,7 @@
         <label class="block text-sm font-medium text-dark-300 mb-2">Hora disponible</label>
 
         <div v-if="loading" class="flex justify-center py-8">
-          <ion-spinner name="crescent" color="warning" />
+          <ion-spinner name="crescent" color="dark" />
         </div>
 
         <div v-else-if="!selectedDate" class="text-dark-500 text-sm py-8 text-center">
@@ -41,7 +41,7 @@
             :class="[
               selectedSlot?.start_time === slot.start_time
                 ? 'bg-brand-400 text-white'
-                : 'bg-white border border-gray-200 text-[#2B2E2E] hover:border-brand-400',
+                : 'bg-white border border-gray-200 text-[#1d1d1f] hover:border-brand-400',
             ]"
           >
             {{ formatTime(slot.start_time) }}

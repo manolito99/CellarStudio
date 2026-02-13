@@ -6,7 +6,7 @@
         <span v-html="icon" class="w-5 h-5" :class="iconColor"></span>
       </div>
     </div>
-    <p class="text-2xl font-bold text-[#2B2E2E]">{{ formattedValue }}</p>
+    <p class="text-2xl font-bold text-[#1d1d1f]">{{ formattedValue }}</p>
     <p v-if="subtitle" class="text-xs text-dark-500 mt-1">{{ subtitle }}</p>
   </div>
 </template>

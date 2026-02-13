@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-[#2B2E2E] mb-6">Dashboard</h1>
+    <h1 class="text-2xl font-bold text-[#1d1d1f] mb-6">Dashboard</h1>
 
     <!-- KPI Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -40,7 +40,7 @@
     <!-- Today's appointments -->
     <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
       <div class="px-4 sm:px-6 py-4 border-b border-gray-200 flex items-center justify-between gap-2">
-        <h2 class="text-lg font-bold text-[#2B2E2E]">Citas de hoy</h2>
+        <h2 class="text-lg font-bold text-[#1d1d1f]">Citas de hoy</h2>
         <div class="flex items-center gap-3">
           <button
             v-if="todayAppointments.length > 0"
@@ -70,17 +70,17 @@
         >
           <div class="flex items-center gap-3 min-w-0">
             <div class="text-center min-w-[50px] flex-shrink-0">
-              <p class="text-base sm:text-lg font-bold text-[#2B2E2E]">{{ formatTime(appt.start_time) }}</p>
+              <p class="text-base sm:text-lg font-bold text-[#1d1d1f]">{{ formatTime(appt.start_time) }}</p>
               <p class="text-xs text-dark-500">{{ formatTime(appt.end_time) }}</p>
             </div>
             <div class="min-w-0">
-              <p class="text-[#2B2E2E] font-medium truncate">{{ appt.client.name }}</p>
+              <p class="text-[#1d1d1f] font-medium truncate">{{ appt.client.name }}</p>
               <p class="text-sm text-dark-400 truncate">{{ appt.service.name }} - {{ appt.barber.name }}</p>
             </div>
           </div>
           <span
             class="px-2 sm:px-3 py-1 rounded-full text-xs font-medium flex-shrink-0"
-            :class="statusClasses[appt.status] || 'bg-gray-100 text-[#595959]'"
+            :class="statusClasses[appt.status] || 'bg-gray-100 text-[#86868b]'"
           >
             {{ statusLabels[appt.status] || appt.status }}
           </span>
@@ -120,7 +120,7 @@ const statusClasses: Record<string, string> = {
   confirmed: 'bg-blue-500/10 text-blue-400',
   completed: 'bg-green-500/10 text-green-400',
   cancelled: 'bg-red-500/10 text-red-400',
-  noshow: 'bg-gray-100 text-[#595959]',
+  noshow: 'bg-gray-100 text-[#86868b]',
 }
 
 function formatTime(time: string): string {

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h3 class="text-2xl font-heading font-bold text-[#2B2E2E] mb-2">Elegí tu barbero</h3>
+    <h3 class="text-2xl font-heading font-bold text-[#1d1d1f] mb-2">Elegí tu barbero</h3>
     <p class="text-dark-400 mb-6">Seleccioná con quién querés atenderte</p>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -15,8 +15,8 @@
             : 'border-gray-200 bg-white hover:border-gray-400',
         ]"
       >
-        <div class="w-20 h-20 mx-auto mb-3 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 p-0.5">
-          <div class="w-full h-full rounded-full bg-[#F2F0E9] flex items-center justify-center">
+        <div class="w-20 h-20 mx-auto mb-3 rounded-full bg-gradient-to-br from-[#1d1d1f] to-[#86868b] p-0.5">
+          <div class="w-full h-full rounded-full bg-white flex items-center justify-center">
             <img
               v-if="barber.photo_url"
               :src="barber.photo_url"
@@ -28,7 +28,7 @@
             </span>
           </div>
         </div>
-        <h4 class="font-bold text-[#2B2E2E]">{{ barber.name }}</h4>
+        <h4 class="font-bold text-[#1d1d1f]">{{ barber.name }}</h4>
         <p class="text-dark-400 text-sm mt-1 line-clamp-2">{{ barber.bio }}</p>
       </button>
     </div>

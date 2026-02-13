@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold text-[#2B2E2E]">Barberos</h1>
+      <h1 class="text-2xl font-bold text-[#1d1d1f]">Barberos</h1>
       <button
         @click="openModal()"
         class="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition-colors"
@@ -18,23 +18,23 @@
       >
         <div class="flex items-start justify-between mb-4">
           <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 p-0.5 flex-shrink-0">
-              <div class="w-full h-full rounded-full bg-[#F2F0E9] flex items-center justify-center">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#1d1d1f] to-[#86868b] p-0.5 flex-shrink-0">
+              <div class="w-full h-full rounded-full bg-white flex items-center justify-center">
                 <span class="text-lg font-bold text-brand-400">{{ barber.name.charAt(0) }}</span>
               </div>
             </div>
             <div>
-              <h3 class="text-[#2B2E2E] font-bold">{{ barber.name }}</h3>
+              <h3 class="text-[#1d1d1f] font-bold">{{ barber.name }}</h3>
               <span
                 class="text-xs px-2 py-0.5 rounded-full"
-                :class="barber.is_active ? 'bg-green-500/10 text-green-400' : 'bg-gray-100 text-[#595959]'"
+                :class="barber.is_active ? 'bg-green-500/10 text-green-400' : 'bg-gray-100 text-[#86868b]'"
               >
                 {{ barber.is_active ? 'Activo' : 'Inactivo' }}
               </span>
             </div>
           </div>
           <div class="flex gap-1">
-            <button @click="openModal(barber)" class="p-1.5 rounded-lg hover:bg-gray-100 text-[#595959] hover:text-[#2B2E2E] transition-colors">
+            <button @click="openModal(barber)" class="p-1.5 rounded-lg hover:bg-gray-100 text-[#86868b] hover:text-[#1d1d1f] transition-colors">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
             </button>
             <button @click="deleteBarber(barber.id)" class="p-1.5 rounded-lg hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors">
@@ -47,7 +47,7 @@
           <span
             v-for="svc in barber.services"
             :key="svc.id"
-            class="px-2 py-0.5 bg-gray-100 text-[#595959] text-xs rounded-full"
+            class="px-2 py-0.5 bg-gray-100 text-[#86868b] text-xs rounded-full"
           >
             {{ svc.name }}
           </span>
@@ -58,17 +58,17 @@
     <!-- Modal -->
     <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div class="bg-white border border-gray-200 rounded-2xl w-full max-w-lg p-6">
-        <h2 class="text-xl font-bold text-[#2B2E2E] mb-6">
+        <h2 class="text-xl font-bold text-[#1d1d1f] mb-6">
           {{ editing ? 'Editar barbero' : 'Nuevo barbero' }}
         </h2>
         <form @submit.prevent="saveBarber" class="space-y-4">
           <div>
             <label class="block text-sm text-dark-300 mb-1">Nombre</label>
-            <input v-model="form.name" required class="w-full px-3 py-2 bg-[#F2F0E9] border border-gray-200 rounded-lg text-[#2B2E2E] focus:border-brand-400 focus:outline-none" />
+            <input v-model="form.name" required class="w-full px-3 py-2 bg-[#f5f5f7] border border-gray-200 rounded-lg text-[#1d1d1f] focus:border-brand-400 focus:outline-none" />
           </div>
           <div>
             <label class="block text-sm text-dark-300 mb-1">Bio</label>
-            <textarea v-model="form.bio" rows="2" class="w-full px-3 py-2 bg-[#F2F0E9] border border-gray-200 rounded-lg text-[#2B2E2E] focus:border-brand-400 focus:outline-none resize-none" />
+            <textarea v-model="form.bio" rows="2" class="w-full px-3 py-2 bg-[#f5f5f7] border border-gray-200 rounded-lg text-[#1d1d1f] focus:border-brand-400 focus:outline-none resize-none" />
           </div>
           <div>
             <label class="block text-sm text-dark-300 mb-2">Servicios</label>
@@ -84,7 +84,7 @@
                   v-model="form.service_ids"
                   class="rounded border-gray-300 text-brand-500 focus:ring-brand-400"
                 />
-                <span class="text-sm text-[#2B2E2E]">{{ svc.name }}</span>
+                <span class="text-sm text-[#1d1d1f]">{{ svc.name }}</span>
               </label>
             </div>
           </div>
@@ -92,7 +92,7 @@
             <button type="submit" class="flex-1 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-lg transition-colors">
               {{ editing ? 'Guardar' : 'Crear' }}
             </button>
-            <button type="button" @click="showModal = false" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-[#2B2E2E] rounded-lg transition-colors">
+            <button type="button" @click="showModal = false" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-[#1d1d1f] rounded-lg transition-colors">
               Cancelar
             </button>
           </div>

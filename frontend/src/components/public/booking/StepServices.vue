@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h3 class="text-2xl font-heading font-bold text-[#2B2E2E] mb-2">Elegí tu servicio</h3>
+    <h3 class="text-2xl font-heading font-bold text-[#1d1d1f] mb-2">Elegí tu servicio</h3>
     <p class="text-dark-400 mb-6">Seleccioná el servicio que necesitás</p>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -17,7 +17,7 @@
       >
         <div class="flex items-start justify-between">
           <div>
-            <h4 class="font-bold text-[#2B2E2E] text-lg">{{ service.name }}</h4>
+            <h4 class="font-bold text-[#1d1d1f] text-lg">{{ service.name }}</h4>
             <p class="text-dark-400 text-sm mt-1">{{ service.description }}</p>
           </div>
           <div

@@ -24,7 +24,15 @@
       "Bash(git remote add:*)",
       "Bash(git branch:*)",
       "Bash(git push:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "WebSearch",
+      "WebFetch(domain:www.smashingmagazine.com)",
+      "WebFetch(domain:unsplash.com)",
+      "Bash(timeout 8 docker logs:*)",
+      "Bash(timeout 10 docker logs:*)",
+      "WebFetch(domain:images.unsplash.com)",
+      "Bash(timeout 6 docker logs:*)",
+      "Bash(npx vue-tsc:*)"
     ]
   }
 }

@@ -1,39 +1,39 @@
 <template>
   <div>
-    <h3 class="text-2xl font-heading font-bold text-[#2B2E2E] mb-2">Confirmá tu reserva</h3>
+    <h3 class="text-2xl font-heading font-bold text-[#1d1d1f] mb-2">Confirmá tu reserva</h3>
     <p class="text-dark-400 mb-6">Revisá los datos antes de confirmar</p>
 
     <div class="bg-white border border-gray-200 rounded-2xl p-6 max-w-md space-y-4">
       <div class="flex justify-between items-center pb-4 border-b border-gray-200">
-        <span class="text-[#595959]">Servicio</span>
-        <span class="text-[#2B2E2E] font-medium">{{ service?.name }}</span>
+        <span class="text-[#86868b]">Servicio</span>
+        <span class="text-[#1d1d1f] font-medium">{{ service?.name }}</span>
       </div>
       <div class="flex justify-between items-center pb-4 border-b border-gray-200">
-        <span class="text-[#595959]">Barbero</span>
-        <span class="text-[#2B2E2E] font-medium">{{ barber?.name }}</span>
+        <span class="text-[#86868b]">Barbero</span>
+        <span class="text-[#1d1d1f] font-medium">{{ barber?.name }}</span>
       </div>
       <div class="flex justify-between items-center pb-4 border-b border-gray-200">
-        <span class="text-[#595959]">Fecha</span>
-        <span class="text-[#2B2E2E] font-medium">{{ formatDate(date) }}</span>
+        <span class="text-[#86868b]">Fecha</span>
+        <span class="text-[#1d1d1f] font-medium">{{ formatDate(date) }}</span>
       </div>
       <div class="flex justify-between items-center pb-4 border-b border-gray-200">
-        <span class="text-[#595959]">Hora</span>
-        <span class="text-[#2B2E2E] font-medium">{{ slot ? formatTime(slot.start_time) : '' }}</span>
+        <span class="text-[#86868b]">Hora</span>
+        <span class="text-[#1d1d1f] font-medium">{{ slot ? formatTime(slot.start_time) : '' }}</span>
       </div>
       <div class="flex justify-between items-center pb-4 border-b border-gray-200">
-        <span class="text-[#595959]">Duración</span>
-        <span class="text-[#2B2E2E] font-medium">{{ service?.duration_minutes }} min</span>
+        <span class="text-[#86868b]">Duración</span>
+        <span class="text-[#1d1d1f] font-medium">{{ service?.duration_minutes }} min</span>
       </div>
       <div class="flex justify-between items-center pb-4 border-b border-gray-200">
-        <span class="text-[#595959]">Cliente</span>
-        <span class="text-[#2B2E2E] font-medium">{{ clientName }}</span>
+        <span class="text-[#86868b]">Cliente</span>
+        <span class="text-[#1d1d1f] font-medium">{{ clientName }}</span>
       </div>
       <div class="flex justify-between items-center pb-4 border-b border-gray-200">
-        <span class="text-[#595959]">Teléfono</span>
-        <span class="text-[#2B2E2E] font-medium">{{ clientPhone }}</span>
+        <span class="text-[#86868b]">Teléfono</span>
+        <span class="text-[#1d1d1f] font-medium">{{ clientPhone }}</span>
       </div>
       <div class="flex justify-between items-center pt-2">
-        <span class="text-lg font-bold text-[#2B2E2E]">Total</span>
+        <span class="text-lg font-bold text-[#1d1d1f]">Total</span>
         <span class="text-2xl font-bold text-brand-400">${{ service?.price.toLocaleString() }}</span>
       </div>
     </div>

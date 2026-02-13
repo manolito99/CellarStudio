@@ -71,7 +71,7 @@ Monorepo with three services orchestrated via Docker Compose:
 - **DB**: PostgreSQL 16, tables auto-created via `Base.metadata.create_all` (no migrations in versions/ yet)
 - **Seed admin**: `admin@cellarstudio.com` / `admin123`
 - **Availability algorithm**: 15-minute intervals, filters past times, booked appointments, and blocked slots
-- **Brand colors**: `#A66B4C` (primary), `#F2F0E9` (background) — defined in `tailwind.config.js`
+- **Brand colors**: `#000000` (primary), `#ffffff` (background) — Apple-inspired B&W palette defined in `tailwind.config.js`
 - **Capacitor appId**: `com.cellarstudio.app`, webDir: `dist`
 - **Schedule**: `day_of_week` uses 0=Monday through 6=Sunday
 

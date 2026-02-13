@@ -1,31 +1,31 @@
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-[#2B2E2E] mb-6">Configuración</h1>
+    <h1 class="text-2xl font-bold text-[#1d1d1f] mb-6">Configuración</h1>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Business Info -->
       <div class="bg-white border border-gray-200 rounded-xl p-6">
-        <h2 class="text-lg font-bold text-[#2B2E2E] mb-4">Datos del negocio</h2>
+        <h2 class="text-lg font-bold text-[#1d1d1f] mb-4">Datos del negocio</h2>
         <form class="space-y-4">
           <div>
             <label class="block text-sm text-dark-300 mb-1">Nombre</label>
             <input
               v-model="business.name"
-              class="w-full px-3 py-2 bg-[#F2F0E9] border border-gray-200 rounded-lg text-[#2B2E2E] focus:border-brand-400 focus:outline-none"
+              class="w-full px-3 py-2 bg-[#f5f5f7] border border-gray-200 rounded-lg text-[#1d1d1f] focus:border-brand-400 focus:outline-none"
             />
           </div>
           <div>
             <label class="block text-sm text-dark-300 mb-1">Dirección</label>
             <input
               v-model="business.address"
-              class="w-full px-3 py-2 bg-[#F2F0E9] border border-gray-200 rounded-lg text-[#2B2E2E] focus:border-brand-400 focus:outline-none"
+              class="w-full px-3 py-2 bg-[#f5f5f7] border border-gray-200 rounded-lg text-[#1d1d1f] focus:border-brand-400 focus:outline-none"
             />
           </div>
           <div>
             <label class="block text-sm text-dark-300 mb-1">Teléfono</label>
             <input
               v-model="business.phone"
-              class="w-full px-3 py-2 bg-[#F2F0E9] border border-gray-200 rounded-lg text-[#2B2E2E] focus:border-brand-400 focus:outline-none"
+              class="w-full px-3 py-2 bg-[#f5f5f7] border border-gray-200 rounded-lg text-[#1d1d1f] focus:border-brand-400 focus:outline-none"
             />
           </div>
           <div>
@@ -33,7 +33,7 @@
             <input
               v-model="business.email"
               type="email"
-              class="w-full px-3 py-2 bg-[#F2F0E9] border border-gray-200 rounded-lg text-[#2B2E2E] focus:border-brand-400 focus:outline-none"
+              class="w-full px-3 py-2 bg-[#f5f5f7] border border-gray-200 rounded-lg text-[#1d1d1f] focus:border-brand-400 focus:outline-none"
             />
           </div>
           <button
@@ -48,12 +48,12 @@
       <!-- App Settings -->
       <div class="space-y-6">
         <div class="bg-white border border-gray-200 rounded-xl p-6">
-          <h2 class="text-lg font-bold text-[#2B2E2E] mb-4">Configuración de slots</h2>
+          <h2 class="text-lg font-bold text-[#1d1d1f] mb-4">Configuración de slots</h2>
           <div>
             <label class="block text-sm text-dark-300 mb-2">Duración de slots (minutos)</label>
             <select
               v-model="slotDuration"
-              class="px-3 py-2 bg-[#F2F0E9] border border-gray-200 rounded-lg text-[#2B2E2E] focus:border-brand-400 focus:outline-none"
+              class="px-3 py-2 bg-[#f5f5f7] border border-gray-200 rounded-lg text-[#1d1d1f] focus:border-brand-400 focus:outline-none"
             >
               <option :value="15">15 minutos</option>
               <option :value="20">20 minutos</option>
@@ -63,14 +63,14 @@
         </div>
 
         <div class="bg-white border border-gray-200 rounded-xl p-6">
-          <h2 class="text-lg font-bold text-[#2B2E2E] mb-4">Cuenta administrador</h2>
+          <h2 class="text-lg font-bold text-[#1d1d1f] mb-4">Cuenta administrador</h2>
           <div class="space-y-3">
             <div>
               <label class="block text-sm text-dark-300 mb-1">Email actual</label>
-              <p class="text-[#2B2E2E]">{{ user?.email }}</p>
+              <p class="text-[#1d1d1f]">{{ user?.email }}</p>
             </div>
             <button
-              class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-[#2B2E2E] text-sm font-medium rounded-lg border border-gray-200 transition-colors"
+              class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-[#1d1d1f] text-sm font-medium rounded-lg border border-gray-200 transition-colors"
             >
               Cambiar contraseña
             </button>
@@ -78,11 +78,11 @@
         </div>
 
         <div class="bg-white border border-gray-200 rounded-xl p-6">
-          <h2 class="text-lg font-bold text-[#2B2E2E] mb-4">Información del sistema</h2>
+          <h2 class="text-lg font-bold text-[#1d1d1f] mb-4">Información del sistema</h2>
           <div class="space-y-2 text-sm">
             <div class="flex justify-between">
               <span class="text-dark-400">Versión</span>
-              <span class="text-[#2B2E2E]">1.0.0</span>
+              <span class="text-[#1d1d1f]">1.0.0</span>
             </div>
             <div class="flex justify-between">
               <span class="text-dark-400">API</span>

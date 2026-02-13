@@ -1,50 +1,48 @@
 <template>
   <ion-page>
-    <ion-header class="ion-no-border">
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-back-button default-href="/" text="" color="medium" />
-        </ion-buttons>
-        <ion-title class="text-[#2B2E2E]">Admin</ion-title>
-      </ion-toolbar>
-    </ion-header>
-
-    <ion-content :fullscreen="true" class="ion-padding">
-      <div class="min-h-full flex items-center justify-center">
-        <div class="w-full max-w-md">
+    <ion-content :fullscreen="true">
+      <div class="min-h-screen bg-[#fafafa] flex items-center justify-center px-4">
+        <div class="w-full max-w-md login-entrance">
           <div class="text-center mb-8">
-            <h1 class="text-3xl font-heading font-bold text-brand-400 mb-2">Cellar Studio</h1>
-            <p class="text-[#595959]">Panel de administración</p>
+            <div class="login-item login-delay-0">
+              <h1 class="text-3xl font-heading font-semibold text-[#1d1d1f] mb-2 tracking-tight">Cellar Studio</h1>
+              <p class="text-[#86868b]">Panel de administración</p>
+            </div>
           </div>
 
-          <form @submit.prevent="handleLogin" class="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8">
-            <h2 class="text-xl font-bold text-[#2B2E2E] mb-6">Iniciar sesión</h2>
+          <form
+            @submit.prevent="handleLogin"
+            class="login-item login-delay-1 bg-white border border-[#e8e8ed] rounded-2xl p-6 sm:p-8 shadow-sm"
+          >
+            <h2 class="text-xl font-semibold text-[#1d1d1f] mb-6">Iniciar sesión</h2>
 
-            <div v-if="error" class="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
-              {{ error }}
-            </div>
+            <Transition name="error-slide">
+              <div v-if="error" class="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+                {{ error }}
+              </div>
+            </Transition>
 
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-[#595959] mb-2">Email</label>
+                <label class="block text-sm font-medium text-[#86868b] mb-2">Email</label>
                 <input
                   v-model="email"
                   type="email"
                   required
                   autocomplete="email"
                   placeholder="admin@cellarstudio.com"
-                  class="w-full px-4 py-3 bg-[#F2F0E9] border border-gray-300 rounded-xl text-[#2B2E2E] placeholder-gray-400 focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400"
+                  class="w-full px-4 py-3 bg-[#f5f5f7] border border-[#e8e8ed] rounded-xl text-[#1d1d1f] placeholder-[#86868b]/50 focus:border-[#1d1d1f] focus:outline-none focus:ring-1 focus:ring-[#1d1d1f] transition-all duration-300"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-[#595959] mb-2">Contraseña</label>
+                <label class="block text-sm font-medium text-[#86868b] mb-2">Contraseña</label>
                 <input
                   v-model="password"
                   type="password"
                   required
                   autocomplete="current-password"
                   placeholder="Tu contraseña"
-                  class="w-full px-4 py-3 bg-[#F2F0E9] border border-gray-300 rounded-xl text-[#2B2E2E] placeholder-gray-400 focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400"
+                  class="w-full px-4 py-3 bg-[#f5f5f7] border border-[#e8e8ed] rounded-xl text-[#1d1d1f] placeholder-[#86868b]/50 focus:border-[#1d1d1f] focus:outline-none focus:ring-1 focus:ring-[#1d1d1f] transition-all duration-300"
                 />
               </div>
             </div>
@@ -52,14 +50,14 @@
             <button
               type="submit"
               :disabled="loading"
-              class="w-full mt-6 px-4 py-3 bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white font-semibold rounded-xl transition-colors active:bg-brand-700"
+              class="btn-primary w-full mt-6 px-4 py-3.5 bg-[#1d1d1f] disabled:opacity-50 text-white font-semibold rounded-xl"
             >
               {{ loading ? 'Ingresando...' : 'Ingresar' }}
             </button>
           </form>
 
-          <div class="text-center mt-6">
-            <router-link to="/" class="text-sm text-[#595959] hover:text-[#4A5D66] transition-colors">
+          <div class="login-item login-delay-2 text-center mt-6">
+            <router-link to="/" class="text-sm text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-300">
               Volver al sitio
             </router-link>
           </div>
@@ -72,7 +70,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonContent } from '@ionic/vue'
+import { IonPage, IonContent } from '@ionic/vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -98,11 +96,35 @@ async function handleLogin() {
 </script>
 
 <style scoped>
-ion-toolbar {
-  --background: #F2F0E9;
-  --border-color: transparent;
-}
 ion-content {
-  --background: #F2F0E9;
+  --background: #fafafa;
+}
+
+/* Staggered entrance */
+.login-item {
+  opacity: 0;
+  transform: translateY(25px);
+  animation: loginReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.login-delay-0 { animation-delay: 0.1s; }
+.login-delay-1 { animation-delay: 0.3s; }
+.login-delay-2 { animation-delay: 0.5s; }
+
+@keyframes loginReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Error slide transition */
+.error-slide-enter-active,
+.error-slide-leave-active {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.error-slide-enter-from,
+.error-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 </style>

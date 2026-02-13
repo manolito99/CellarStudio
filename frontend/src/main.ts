@@ -19,12 +19,17 @@ import '@ionic/vue/css/display.css'
 /* Tailwind CSS */
 import './assets/css/tailwind.css'
 
+/* Directives */
+import { vReveal } from './directives/vReveal'
+
 const pinia = createPinia()
 
 const app = createApp(App)
   .use(IonicVue, { mode: 'md' })
   .use(pinia)
   .use(router)
+
+app.directive('reveal', vReveal)
 
 router.isReady().then(() => {
   app.mount('#app')

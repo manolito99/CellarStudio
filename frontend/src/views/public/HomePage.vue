@@ -3,23 +3,23 @@
     <ion-header class="ion-no-border home-header" :class="{ 'header-scrolled': scrolled }">
       <ion-toolbar>
         <div class="max-w-6xl mx-auto px-4 flex items-center justify-between" style="height: 56px;">
-          <img src="/icons/logo.svg" alt="Cellar Studio" class="h-9 w-auto" />
-          <div class="hidden md:flex items-center gap-6">
-            <a href="#services" class="text-sm text-dark-400 hover:text-[#2B2E2E] transition-colors">Servicios</a>
-            <a href="#team" class="text-sm text-dark-400 hover:text-[#2B2E2E] transition-colors">Equipo</a>
-            <a href="#gallery" class="text-sm text-dark-400 hover:text-[#2B2E2E] transition-colors">Galería</a>
-            <a href="#location" class="text-sm text-dark-400 hover:text-[#2B2E2E] transition-colors">Ubicación</a>
+          <img src="/icons/CellarStudio_Logo.png" alt="Cellar Studio" class="h-9 w-auto" />
+          <div class="hidden md:flex items-center gap-8">
+            <a href="#services" class="nav-link text-sm text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-300">Servicios</a>
+            <a href="#team" class="nav-link text-sm text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-300">Equipo</a>
+            <a href="#gallery" class="nav-link text-sm text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-300">Galería</a>
+            <a href="#location" class="nav-link text-sm text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-300">Ubicación</a>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-3">
             <router-link
               to="/admin/login"
-              class="px-3 py-2 border border-dark-300 hover:border-[#2B2E2E] text-dark-400 hover:text-[#2B2E2E] text-sm font-medium rounded-lg transition-colors"
+              class="px-4 py-2 text-[#86868b] hover:text-[#1d1d1f] text-sm font-medium transition-colors duration-300"
             >
               Admin
             </router-link>
             <router-link
               to="/booking"
-              class="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition-colors"
+              class="btn-primary px-5 py-2.5 bg-[#1d1d1f] text-white text-sm font-semibold rounded-full"
             >
               Reservar
             </router-link>
@@ -30,6 +30,7 @@
 
     <ion-content :fullscreen="true" :scroll-events="true" @ionScroll="onScroll">
       <HeroSection />
+      <HaircutTransformSection />
       <ServicesGrid />
       <TeamSection />
       <GallerySection />
@@ -42,6 +43,7 @@
 import { ref } from 'vue'
 import { IonPage, IonContent, IonHeader, IonToolbar } from '@ionic/vue'
 import HeroSection from '@/components/public/HeroSection.vue'
+import HaircutTransformSection from '@/components/public/HaircutTransformSection.vue'
 import ServicesGrid from '@/components/public/ServicesGrid.vue'
 import TeamSection from '@/components/public/TeamSection.vue'
 import GallerySection from '@/components/public/GallerySection.vue'
@@ -56,7 +58,7 @@ function onScroll(e: CustomEvent) {
 
 <style scoped>
 ion-content {
-  --background: #F2F0E9;
+  --background: #ffffff;
 }
 ion-toolbar {
   --background: transparent;
@@ -65,10 +67,12 @@ ion-toolbar {
   --padding-end: 0;
 }
 .header-scrolled ion-toolbar {
-  --background: rgba(242, 240, 233, 0.95);
-  --border-color: #d1d1d1;
+  --background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  --border-color: rgba(0, 0, 0, 0.08);
 }
 ion-header {
-  transition: all 0.3s ease;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 </style>

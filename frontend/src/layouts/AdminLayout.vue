@@ -5,7 +5,7 @@
         <ion-buttons slot="start">
           <button
             @click="sidebarOpen = !sidebarOpen"
-            class="p-2 rounded-lg hover:bg-gray-200 text-[#595959] hover:text-[#2B2E2E] lg:hidden"
+            class="p-2 rounded-lg hover:bg-gray-200 text-[#86868b] hover:text-[#1d1d1f] lg:hidden"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -13,12 +13,12 @@
           </button>
         </ion-buttons>
         <ion-title>
-          <span class="text-brand-400 font-heading font-bold">Cellar Studio</span>
-          <span class="text-[#595959] text-sm ml-2">Admin</span>
+          <span class="text-[#1d1d1f] font-heading font-bold">Cellar Studio</span>
+          <span class="text-[#86868b] text-sm ml-2">Admin</span>
         </ion-title>
         <ion-buttons slot="end">
           <div class="flex items-center gap-2 pr-2">
-            <span class="text-sm text-[#595959] hidden sm:inline">{{ user?.name }}</span>
+            <span class="text-sm text-[#86868b] hidden sm:inline">{{ user?.name }}</span>
             <div class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-sm font-bold">
               {{ user?.name?.charAt(0)?.toUpperCase() }}
             </div>
@@ -39,8 +39,8 @@
           style="top: 0;"
         >
           <div class="flex items-center h-14 px-4 border-b border-gray-200 lg:hidden">
-            <h1 class="text-xl font-heading font-bold text-brand-400">Cellar Studio</h1>
-            <button @click="sidebarOpen = false" class="ml-auto p-2 text-[#595959]">
+            <h1 class="text-xl font-heading font-bold text-[#1d1d1f]">Cellar Studio</h1>
+            <button @click="sidebarOpen = false" class="ml-auto p-2 text-[#86868b]">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -57,7 +57,7 @@
               :class="[
                 isActive(item.path)
                   ? 'bg-brand-500/10 text-brand-400'
-                  : 'text-[#595959] hover:bg-gray-100 hover:text-[#2B2E2E]',
+                  : 'text-[#86868b] hover:bg-gray-100 hover:text-[#1d1d1f]',
               ]"
             >
               <span v-html="item.icon" class="w-5 h-5 flex-shrink-0"></span>
@@ -100,7 +100,7 @@
           :key="tab.path"
           :to="tab.path"
           class="flex flex-col items-center gap-0.5 py-2 px-3 min-w-[60px]"
-          :class="isActive(tab.path) ? 'text-brand-400' : 'text-[#595959]'"
+          :class="isActive(tab.path) ? 'text-brand-400' : 'text-[#86868b]'"
         >
           <span v-html="tab.icon" class="w-5 h-5"></span>
           <span class="text-[10px] font-medium">{{ tab.label }}</span>
@@ -210,10 +210,10 @@ onMounted(() => {
 <style scoped>
 ion-toolbar {
   --background: #ffffff;
-  --border-color: #e5e5e5;
+  --border-color: #e8e8ed;
 }
 ion-content {
-  --background: #F2F0E9;
+  --background: #fafafa;
 }
 ion-footer {
   --background: transparent;

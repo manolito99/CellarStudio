@@ -5,28 +5,29 @@
         <ion-buttons slot="start">
           <ion-back-button default-href="/" text="" color="light" />
         </ion-buttons>
-        <ion-title class="text-[#2B2E2E]">Reserva tu cita</ion-title>
+        <ion-title class="text-[#1d1d1f]">Reserva tu cita</ion-title>
       </ion-toolbar>
     </ion-header>
 
     <ion-content :fullscreen="true" class="ion-padding">
       <div class="max-w-3xl mx-auto pb-20">
         <!-- Progress bar -->
-        <div class="mb-8">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm text-dark-400">Paso {{ currentStep }} de {{ totalSteps }}</span>
-            <span class="text-sm text-brand-400 font-medium">{{ stepLabels[currentStep - 1] }}</span>
+        <div class="mb-10">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm text-[#86868b]">Paso {{ currentStep }} de {{ totalSteps }}</span>
+            <span class="text-sm text-[#1d1d1f] font-medium">{{ stepLabels[currentStep - 1] }}</span>
           </div>
-          <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div class="w-full h-1 bg-[#e8e8ed] rounded-full overflow-hidden">
             <div
-              class="h-full bg-gradient-to-r from-brand-500 to-brand-400 rounded-full transition-all duration-500"
+              class="h-full bg-[#1d1d1f] rounded-full transition-all duration-800 ease-out-expo"
               :style="{ width: `${(currentStep / totalSteps) * 100}%` }"
             />
           </div>
         </div>
 
         <!-- Steps -->
-        <div class="mb-8">
+        <Transition name="step" mode="out-in">
+          <div class="mb-8" :key="currentStep">
           <StepServices
             v-if="currentStep === 1"
             :services="services"
@@ -63,14 +64,15 @@
             :clientName="clientName"
             :clientPhone="clientPhone"
           />
-        </div>
+          </div>
+        </Transition>
 
         <!-- Navigation -->
         <div class="flex items-center justify-between gap-4">
           <button
             v-if="currentStep > 1"
             @click="currentStep--"
-            class="px-5 py-3 rounded-xl border border-gray-200 text-[#2B2E2E] font-medium active:bg-gray-100 transition-colors"
+            class="btn-secondary px-6 py-3 rounded-2xl border border-[#d2d2d7] text-[#1d1d1f] font-medium"
           >
             Anterior
           </button>
@@ -80,8 +82,7 @@
             v-if="currentStep < totalSteps"
             :disabled="!canGoNext"
             @click="currentStep++"
-            class="px-5 py-3 rounded-xl bg-brand-500 text-white font-semibold disabled:opacity-30 active:bg-brand-600 transition-colors"
-
+            class="btn-primary px-6 py-3 rounded-2xl bg-[#1d1d1f] text-white font-semibold disabled:opacity-30"
           >
             Siguiente
           </button>
@@ -89,8 +90,7 @@
             v-else
             :disabled="submitting"
             @click="confirmBooking"
-            class="px-5 py-3 rounded-xl bg-brand-500 text-white font-semibold disabled:opacity-50 active:bg-brand-600 transition-colors"
-
+            class="btn-primary px-6 py-3 rounded-2xl bg-[#1d1d1f] text-white font-semibold disabled:opacity-50"
           >
             {{ submitting ? 'Reservando...' : 'Confirmar reserva' }}
           </button>
@@ -202,10 +202,10 @@ onMounted(async () => {
 
 <style scoped>
 ion-toolbar {
-  --background: #F2F0E9;
-  --border-color: #e5e7eb;
+  --background: #ffffff;
+  --border-color: #e8e8ed;
 }
 ion-content {
-  --background: #F2F0E9;
+  --background: #ffffff;
 }
 </style>
