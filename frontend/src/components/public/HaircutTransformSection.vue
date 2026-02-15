@@ -201,7 +201,7 @@ function getTextStyle(index: number) {
     opacity,
     transform: `translateY(${translateY}px)`,
     zIndex: stagesCount + 1,
-    pointerEvents: opacity > 0.5 ? 'auto' : 'none' as const,
+    pointerEvents: (opacity > 0.5 ? 'auto' : 'none') as 'auto' | 'none',
   }
 }
 
