@@ -75,6 +75,20 @@ Monorepo with three services orchestrated via Docker Compose:
 - **Capacitor appId**: `com.cellarstudio.app`, webDir: `dist`
 - **Schedule**: `day_of_week` uses 0=Monday through 6=Sunday
 
+## Production & Deployment
+
+- **Production URL**: https://cellarbarberstudio.com
+- **Server**: Oracle Cloud Free Tier VM, `143.47.45.225`, user `ubuntu`, Ubuntu 20.04 ARM64
+- **App directory on VM**: `/home/ubuntu/CellarStudio`
+- **CI/CD**: GitHub Actions (`.github/workflows/deploy.yml`) — auto-deploys on push to `main` via SSH
+- **SSL**: Let's Encrypt via Certbot, auto-renews via cron daily at 3 AM
+- **Domain DNS**: Cloudflare, A record `@` → `143.47.45.225` (DNS only, no proxy)
+- **Production compose**: `docker-compose.prod.yml` — 3 services (db, backend, nginx) + certbot on-demand
+- **Frontend in prod**: Built inside nginx Docker image via multi-stage build (`nginx/Dockerfile.prod`)
+- **No separate frontend service in prod** — nginx serves the compiled Vue dist as static files
+- **GitHub Secrets**: `SSH_HOST`, `SSH_USER`, `SSH_KEY`
+- See `INFRASTRUCTURE.md` for detailed deployment docs, architecture diagrams, and troubleshooting
+
 ## Environment Variables
 
 See `.env.example` for all variables. Key ones: `DATABASE_URL`, `SECRET_KEY`, `JWT_SECRET`, `SMTP_*` for email, `CORS_ORIGINS`.
