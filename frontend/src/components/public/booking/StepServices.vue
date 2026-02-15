@@ -1,7 +1,7 @@
 <template>
   <div>
-    <h3 class="text-2xl font-heading font-bold text-[#1d1d1f] mb-2">Elegí tu servicio</h3>
-    <p class="text-dark-400 mb-6">Seleccioná el servicio que necesitás</p>
+    <h3 class="text-2xl font-heading font-bold text-[#1d1d1f] mb-2">Elige tu servicio</h3>
+    <p class="text-dark-400 mb-6">Selecciona el servicio que necesitas</p>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <button

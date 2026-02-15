@@ -104,8 +104,8 @@ const user = computed(() => authStore.user)
 
 const business = reactive({
   name: 'Cellar Studio',
-  address: 'Av. Corrientes 1234, CABA',
-  phone: '+54 11 1234-5678',
+  address: 'Camiño do Xote 5, bajo, 36693 Redondela',
+  phone: '+34 600 000 000',
   email: 'info@cellarstudio.com',
 })
 

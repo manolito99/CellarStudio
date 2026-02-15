@@ -299,7 +299,7 @@ async function removeBlock(id: string) {
 }
 
 function formatDate(d: string): string {
-  return new Date(d + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'short', day: '2-digit', month: '2-digit' })
+  return new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit', month: '2-digit' })
 }
 
 onMounted(async () => {

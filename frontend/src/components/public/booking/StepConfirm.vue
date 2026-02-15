@@ -1,7 +1,7 @@
 <template>
   <div>
-    <h3 class="text-2xl font-heading font-bold text-[#1d1d1f] mb-2">Confirmá tu reserva</h3>
-    <p class="text-dark-400 mb-6">Revisá los datos antes de confirmar</p>
+    <h3 class="text-2xl font-heading font-bold text-[#1d1d1f] mb-2">Confirma tu reserva</h3>
+    <p class="text-dark-400 mb-6">Revisa los datos antes de confirmar</p>
 
     <div class="bg-white border border-gray-200 rounded-2xl p-6 max-w-md space-y-4">
       <div class="flex justify-between items-center pb-4 border-b border-gray-200">
@@ -55,7 +55,7 @@ defineProps<{
 function formatDate(dateStr: string): string {
   if (!dateStr) return ''
   const d = new Date(dateStr + 'T12:00:00')
-  return d.toLocaleDateString('es-AR', {
+  return d.toLocaleDateString('es-ES', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',

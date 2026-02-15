@@ -136,7 +136,7 @@ const statusClasses: Record<string, string> = {
 }
 
 function formatDate(d: string): string {
-  return new Date(d).toLocaleDateString('es-AR')
+  return new Date(d).toLocaleDateString('es-ES')
 }
 
 function formatTime(t: string): string {

@@ -4,7 +4,7 @@
       <div class="text-center mb-16">
         <span v-reveal="'blur'" class="text-[#86868b] text-sm font-semibold uppercase tracking-[0.2em]">Ubicación</span>
         <h2 v-reveal="'blur'" data-delay="100" class="text-4xl md:text-5xl font-heading font-semibold text-[#1d1d1f] mt-3 tracking-tight">
-          Visitanos
+          Visítanos
         </h2>
         <div v-reveal data-delay="200" class="divider-shimmer w-16 mx-auto mt-5"></div>
       </div>
@@ -13,7 +13,7 @@
         <!-- Map -->
         <div v-reveal="'left'" class="rounded-2xl overflow-hidden h-80 lg:h-full min-h-[320px] bg-[#f5f5f7] shadow-sm">
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3284.016887678!2d-58.3816!3d-34.6037!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzTCsDM2JzEzLjMiUyA1OMKwMjInNTMuOCJX!5e0!3m2!1ses!2sar!4v1"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2954.5!2d-8.6095!3d42.2839!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDLCsDE3JzAyLjAiTiA4wrAzNic0Mi4yIlc!5e0!3m2!1ses!2ses!4v1"
             width="100%"
             height="100%"
             style="border: 0"
@@ -60,8 +60,8 @@
               </div>
               Dirección
             </h3>
-            <p class="text-[#1d1d1f]">Av. Corrientes 1234, CABA</p>
-            <p class="text-[#86868b] text-sm mt-1">Buenos Aires, Argentina</p>
+            <p class="text-[#1d1d1f]">Camiño do Xote 5, bajo</p>
+            <p class="text-[#86868b] text-sm mt-1">36693 Redondela, Pontevedra</p>
           </div>
 
           <div v-reveal="'right'" data-delay="300" class="card-premium bg-white rounded-2xl p-6">
@@ -73,7 +73,7 @@
               </div>
               Contacto
             </h3>
-            <p class="text-[#1d1d1f]">+54 11 1234-5678</p>
+            <p class="text-[#1d1d1f]">+34 600 000 000</p>
             <p class="text-[#86868b] text-sm mt-1">info@cellarstudio.com</p>
           </div>
         </div>

@@ -32,7 +32,10 @@
       "Bash(timeout 10 docker logs:*)",
       "WebFetch(domain:images.unsplash.com)",
       "Bash(timeout 6 docker logs:*)",
-      "Bash(npx vue-tsc:*)"
+      "Bash(npx vue-tsc:*)",
+      "Bash(scp:*)",
+      "Bash(ssh:*)",
+      "Bash(gh repo view:*)"
     ]
   }
 }

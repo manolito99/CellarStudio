@@ -1,7 +1,7 @@
 <template>
   <div>
-    <h3 class="text-2xl font-heading font-bold text-[#1d1d1f] mb-2">Elegí fecha y hora</h3>
-    <p class="text-dark-400 mb-6">Seleccioná cuándo querés tu cita</p>
+    <h3 class="text-2xl font-heading font-bold text-[#1d1d1f] mb-2">Elige fecha y hora</h3>
+    <p class="text-dark-400 mb-6">Selecciona cuándo quieres tu cita</p>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <!-- Date picker -->
@@ -25,7 +25,7 @@
         </div>
 
         <div v-else-if="!selectedDate" class="text-dark-500 text-sm py-8 text-center">
-          Seleccioná una fecha primero
+          Selecciona una fecha primero
         </div>
 
         <div v-else-if="slots.length === 0" class="text-dark-500 text-sm py-8 text-center">

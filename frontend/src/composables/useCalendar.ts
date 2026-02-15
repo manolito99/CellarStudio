@@ -40,7 +40,7 @@ export function useCalendar() {
     const start = weekDays.value[0]
     const end = weekDays.value[6]
     const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }
-    return `${start.toLocaleDateString('es-AR', opts)} — ${end.toLocaleDateString('es-AR', opts)}, ${end.getFullYear()}`
+    return `${start.toLocaleDateString('es-ES', opts)} — ${end.toLocaleDateString('es-ES', opts)}, ${end.getFullYear()}`
   })
 
   const appointmentsByDay = computed(() => {

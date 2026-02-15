@@ -187,7 +187,7 @@ async function confirmBooking() {
     })
     router.push('/confirmation')
   } catch {
-    alert('Error al crear la reserva. Intentá de nuevo.')
+    alert('Error al crear la reserva. Inténtalo de nuevo.')
   } finally {
     submitting.value = false
   }

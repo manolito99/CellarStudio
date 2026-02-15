@@ -71,7 +71,7 @@
           v-if="progress < 0.03"
           class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-10"
         >
-          <span class="text-white/40 text-sm tracking-wide">Scrolleá para ver la transformación</span>
+          <span class="text-white/40 text-sm tracking-wide">Desliza para ver la transformación</span>
           <div class="scroll-chevrons">
             <svg class="w-5 h-5 text-white/40 chevron-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
