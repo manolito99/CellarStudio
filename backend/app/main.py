@@ -19,6 +19,9 @@ async def lifespan(app: FastAPI):
 
     logger = logging.getLogger("cellarstudio.startup")
 
+    # Clear connection pool inherited from parent process (uvicorn --workers fork)
+    engine.dispose()
+
     try:
         with engine.connect() as conn:
             # Advisory lock prevents race conditions with multiple uvicorn workers
