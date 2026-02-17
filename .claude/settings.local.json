@@ -35,7 +35,9 @@
       "Bash(npx vue-tsc:*)",
       "Bash(scp:*)",
       "Bash(ssh:*)",
-      "Bash(gh repo view:*)"
+      "Bash(gh repo view:*)",
+      "Bash(gh run list:*)",
+      "WebFetch(domain:cellarbarberstudio.com)"
     ]
   }
 }

@@ -34,7 +34,7 @@
               :class="scheduleMap[index]?.enabled ? 'bg-brand-500' : 'bg-gray-300'"
             >
               <span
-                class="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform"
+                class="absolute left-0 top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform"
                 :class="scheduleMap[index]?.enabled ? 'translate-x-[18px]' : 'translate-x-0.5'"
               ></span>
             </button>
