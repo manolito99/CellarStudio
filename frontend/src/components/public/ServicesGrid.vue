@@ -30,8 +30,7 @@
             <h3 class="text-xl font-semibold text-[#1d1d1f] mb-2">{{ service.name }}</h3>
             <p class="text-[#86868b] text-sm mb-5 leading-relaxed">{{ service.description }}</p>
             <div class="flex items-center justify-between pt-4 border-t border-[#e8e8ed]">
-              <span class="text-2xl font-bold text-[#1d1d1f]">${{ service.price.toLocaleString() }}</span>
-              <span class="text-sm text-[#86868b] bg-[#f5f5f7] px-3 py-1 rounded-full">{{ service.duration_minutes }} min</span>
+              <span class="text-sm text-[#86868b] bg-[#f5f5f7] px-3 py-1 rounded-full">{{ service.duration_minutes >= 120 ? 'Consultar duración' : service.duration_minutes + ' min' }}</span>
             </div>
           </div>
         </ion-card>

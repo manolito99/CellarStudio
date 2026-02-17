@@ -43,8 +43,7 @@
           </div>
         </div>
         <div class="flex items-center gap-4 mt-3">
-          <span class="text-xl font-bold text-brand-400">${{ service.price.toLocaleString() }}</span>
-          <span class="text-sm text-dark-500">{{ service.duration_minutes }} min</span>
+          <span class="text-sm text-dark-500">{{ service.duration_minutes >= 120 ? 'Consultar duración' : service.duration_minutes + ' min' }}</span>
         </div>
       </button>
     </div>

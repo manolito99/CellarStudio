@@ -22,19 +22,15 @@
       </div>
       <div class="flex justify-between items-center pb-4 border-b border-gray-200">
         <span class="text-[#86868b]">Duración</span>
-        <span class="text-[#1d1d1f] font-medium">{{ service?.duration_minutes }} min</span>
+        <span class="text-[#1d1d1f] font-medium">{{ service && service.duration_minutes >= 120 ? 'Consultar' : service?.duration_minutes + ' min' }}</span>
       </div>
       <div class="flex justify-between items-center pb-4 border-b border-gray-200">
         <span class="text-[#86868b]">Cliente</span>
         <span class="text-[#1d1d1f] font-medium">{{ clientName }}</span>
       </div>
-      <div class="flex justify-between items-center pb-4 border-b border-gray-200">
+      <div class="flex justify-between items-center">
         <span class="text-[#86868b]">Teléfono</span>
         <span class="text-[#1d1d1f] font-medium">{{ clientPhone }}</span>
-      </div>
-      <div class="flex justify-between items-center pt-2">
-        <span class="text-lg font-bold text-[#1d1d1f]">Total</span>
-        <span class="text-2xl font-bold text-brand-400">${{ service?.price.toLocaleString() }}</span>
       </div>
     </div>
   </div>

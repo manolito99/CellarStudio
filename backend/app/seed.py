@@ -42,38 +42,24 @@ def seed():
         services_data = [
             {
                 "name": "Corte Clásico",
-                "description": "Corte de cabello tradicional con tijera y máquina. Incluye lavado y peinado.",
-                "price": 2500.00,
-                "duration_minutes": 30,
+                "description": "Corte de cabello con tijera y máquina. Incluye lavado y peinado.",
+                "price": 0,
+                "duration_minutes": 60,
                 "sort_order": 1,
             },
             {
-                "name": "Degradado / Fade",
-                "description": "Degradado moderno con máquina. Low, mid o high fade a elección.",
-                "price": 3000.00,
-                "duration_minutes": 40,
+                "name": "Corte + Barba",
+                "description": "Corte de cabello completo y perfilado de barba.",
+                "price": 0,
+                "duration_minutes": 60,
                 "sort_order": 2,
             },
             {
-                "name": "Barba",
-                "description": "Perfilado y afeitado de barba con navaja. Incluye toalla caliente.",
-                "price": 1500.00,
-                "duration_minutes": 20,
+                "name": "Mechas",
+                "description": "Mechas personalizadas. Duración a consultar según el trabajo.",
+                "price": 0,
+                "duration_minutes": 120,
                 "sort_order": 3,
-            },
-            {
-                "name": "Corte + Barba",
-                "description": "Combo completo: corte de cabello y perfilado de barba.",
-                "price": 4000.00,
-                "duration_minutes": 50,
-                "sort_order": 4,
-            },
-            {
-                "name": "Tratamiento Capilar",
-                "description": "Tratamiento de hidratación profunda con masaje capilar.",
-                "price": 3500.00,
-                "duration_minutes": 45,
-                "sort_order": 5,
             },
         ]
 
@@ -86,19 +72,9 @@ def seed():
         # --- Barbers ---
         barbers_data = [
             {
-                "name": "Maxi López",
-                "bio": "Fundador de Cellar Studio. Especialista en degradados y diseños.",
+                "name": "Maxi Zabaleta",
+                "bio": "Fundador de Cellar Studio. Especialista en cortes y estilos modernos.",
                 "sort_order": 1,
-            },
-            {
-                "name": "Carlos Ruiz",
-                "bio": "Experto en barbería clásica y afeitado con navaja.",
-                "sort_order": 2,
-            },
-            {
-                "name": "Diego Martínez",
-                "bio": "Especialista en tratamientos capilares y estilos modernos.",
-                "sort_order": 3,
             },
         ]
 
@@ -123,11 +99,9 @@ def seed():
 
         # --- Clients ---
         clients_data = [
-            {"name": "Juan Pérez", "phone": "+54 11 1234-5678", "email": "juan@email.com"},
-            {"name": "Miguel Torres", "phone": "+54 11 2345-6789", "email": "miguel@email.com"},
-            {"name": "Roberto Sánchez", "phone": "+54 11 3456-7890"},
-            {"name": "Andrés Gómez", "phone": "+54 11 4567-8901", "email": "andres@email.com"},
-            {"name": "Facundo Ríos", "phone": "+54 11 5678-9012"},
+            {"name": "Juan Pérez", "phone": "+34 611 111 111", "email": "juan@email.com"},
+            {"name": "Miguel Torres", "phone": "+34 622 222 222", "email": "miguel@email.com"},
+            {"name": "Roberto Sánchez", "phone": "+34 633 333 333"},
         ]
 
         clients = []
@@ -145,44 +119,26 @@ def seed():
                 "service": services[0],
                 "date": today,
                 "start_time": time(10, 0),
-                "end_time": time(10, 30),
+                "end_time": time(11, 0),
                 "status": "confirmed",
             },
             {
                 "client": clients[1],
-                "barber": barbers[1],
-                "service": services[3],
+                "barber": barbers[0],
+                "service": services[1],
                 "date": today,
                 "start_time": time(11, 0),
-                "end_time": time(11, 50),
+                "end_time": time(12, 0),
                 "status": "pending",
             },
             {
                 "client": clients[2],
                 "barber": barbers[0],
-                "service": services[1],
-                "date": today,
-                "start_time": time(14, 0),
-                "end_time": time(14, 40),
-                "status": "confirmed",
-            },
-            {
-                "client": clients[3],
-                "barber": barbers[2],
-                "service": services[4],
+                "service": services[0],
                 "date": today + timedelta(days=1),
-                "start_time": time(9, 0),
-                "end_time": time(9, 45),
-                "status": "pending",
-            },
-            {
-                "client": clients[4],
-                "barber": barbers[1],
-                "service": services[2],
-                "date": today + timedelta(days=2),
-                "start_time": time(16, 0),
-                "end_time": time(16, 20),
-                "status": "pending",
+                "start_time": time(14, 0),
+                "end_time": time(15, 0),
+                "status": "confirmed",
             },
         ]
 
