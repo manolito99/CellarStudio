@@ -8,42 +8,19 @@ from app.config import settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: run Alembic migrations and seed
-    import logging
+    # Startup: create tables and seed
+    from app.database import Base, engine
+    from app.models import (  # noqa: F401
+        Appointment,
+        Barber,
+        BlockedSlot,
+        Client,
+        Schedule,
+        Service,
+        User,
+    )
 
-    from alembic.config import Config
-    from alembic import command
-    from sqlalchemy import inspect, text
-
-    from app.database import engine
-
-    logger = logging.getLogger("cellarstudio.startup")
-
-    # Clear connection pool inherited from parent process (uvicorn --workers fork)
-    engine.dispose()
-
-    try:
-        with engine.connect() as conn:
-            # Advisory lock prevents race conditions with multiple uvicorn workers
-            conn.execute(text("SELECT pg_advisory_lock(1)"))
-            try:
-                alembic_cfg = Config("alembic.ini")
-                inspector = inspect(conn)
-                existing_tables = inspector.get_table_names()
-                if existing_tables and "alembic_version" not in existing_tables:
-                    command.stamp(alembic_cfg, "head")
-                else:
-                    command.upgrade(alembic_cfg, "head")
-            finally:
-                conn.execute(text("SELECT pg_advisory_unlock(1)"))
-                conn.commit()
-    except Exception as e:
-        logger.warning(f"Alembic migration failed: {e}, falling back to create_all")
-        from app.database import Base
-        from app.models import (  # noqa: F401
-            Appointment, Barber, BlockedSlot, Client, Schedule, Service, User,
-        )
-        Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
 
     # Auto-seed on startup
     from app.seed import seed

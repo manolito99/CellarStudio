@@ -19,5 +19,9 @@ jobs:
           script: |
             cd ~/CellarStudio
             git pull origin main
-            docker compose -f docker-compose.prod.yml up --build -d
+            docker compose -f docker-compose.prod.yml build
+            docker compose -f docker-compose.prod.yml up -d db
+            sleep 5
+            docker compose -f docker-compose.prod.yml run --rm -T backend alembic upgrade head
+            docker compose -f docker-compose.prod.yml up -d
             docker image prune -f
