@@ -8,19 +8,24 @@ from app.config import settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: create tables and seed
-    from app.database import Base, engine
-    from app.models import (  # noqa: F401
-        Appointment,
-        Barber,
-        BlockedSlot,
-        Client,
-        Schedule,
-        Service,
-        User,
-    )
+    # Startup: run Alembic migrations and seed
+    from alembic.config import Config
+    from alembic import command
+    from sqlalchemy import inspect
 
-    Base.metadata.create_all(bind=engine)
+    from app.database import engine
+
+    alembic_cfg = Config("alembic.ini")
+
+    # Auto-detect pre-existing DB without Alembic tracking
+    inspector = inspect(engine)
+    existing_tables = inspector.get_table_names()
+    if existing_tables and "alembic_version" not in existing_tables:
+        # DB has tables but no alembic_version — stamp as current
+        command.stamp(alembic_cfg, "head")
+    else:
+        # Fresh DB or already tracked — run pending migrations
+        command.upgrade(alembic_cfg, "head")
 
     # Auto-seed on startup
     from app.seed import seed
