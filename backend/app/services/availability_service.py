@@ -44,7 +44,7 @@ def get_availability(
         slot_start = current.time()
         slot_end = (current + duration).time()
         slots.append(TimeSlot(start_time=slot_start, end_time=slot_end, available=True))
-        current += timedelta(minutes=15)  # Step by 15 minutes
+        current += timedelta(minutes=60)  # Step by 1 hour
 
     # Get existing appointments for this barber on this date (not cancelled)
     appointments = (
