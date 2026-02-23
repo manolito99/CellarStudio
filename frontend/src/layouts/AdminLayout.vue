@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <ion-page>
     <ion-header class="ion-no-border">
       <ion-toolbar>
@@ -13,7 +13,7 @@
           </button>
         </ion-buttons>
         <ion-title>
-          <span class="text-[#1d1d1f] font-heading font-bold">Cellar Studio</span>
+          <span class="text-[#1d1d1f] font-heading font-bold">Cellar Barber Studio</span>
           <span class="text-[#86868b] text-sm ml-2">Admin</span>
         </ion-title>
         <ion-buttons slot="end">
@@ -39,7 +39,7 @@
           style="top: 0;"
         >
           <div class="flex items-center h-14 px-4 border-b border-gray-200 lg:hidden">
-            <h1 class="text-xl font-heading font-bold text-[#1d1d1f]">Cellar Studio</h1>
+            <h1 class="text-xl font-heading font-bold text-[#1d1d1f]">Cellar Barber Studio</h1>
             <button @click="sidebarOpen = false" class="ml-auto p-2 text-[#86868b]">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />

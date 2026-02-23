@@ -1,9 +1,9 @@
-<template>
+﻿<template>
   <ion-page>
     <ion-header class="ion-no-border home-header" :class="{ 'header-scrolled': scrolled }">
       <ion-toolbar>
         <div class="max-w-6xl mx-auto px-4 flex items-center justify-between" style="height: 56px;">
-          <img src="/icons/CellarStudio_Logo.png" alt="Cellar Studio" class="h-9 w-auto" />
+          <img src="/icons/CellarStudio_Logo.png" alt="Cellar Barber Studio" class="h-9 w-auto" />
           <div class="hidden md:flex items-center gap-8">
             <a href="#services" class="nav-link text-sm text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-300">Servicios</a>
             <a href="#team" class="nav-link text-sm text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-300">Equipo</a>

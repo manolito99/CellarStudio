@@ -1,6 +1,6 @@
-{
-  "name": "Cellar Studio - Barbería",
-  "short_name": "Cellar Studio",
+﻿{
+  "name": "Cellar Barber Studio - Barbería",
+  "short_name": "Cellar Barber Studio",
   "description": "Barbería premium. Reservá tu cita online.",
   "start_url": "/",
   "display": "standalone",

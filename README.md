@@ -1,4 +1,4 @@
-# Cellar Studio
+﻿# Cellar Barber Studio
 
 Plataforma de reservas online para barbería. Incluye landing page pública, sistema de booking paso a paso, panel de administración completo y soporte móvil con Capacitor.
 

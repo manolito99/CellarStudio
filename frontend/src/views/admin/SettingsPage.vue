@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <h1 class="text-2xl font-bold text-[#1d1d1f] mb-6">Configuración</h1>
 
@@ -103,7 +103,7 @@ const authStore = useAuthStore()
 const user = computed(() => authStore.user)
 
 const business = reactive({
-  name: 'Cellar Studio',
+  name: 'Cellar Barber Studio',
   address: 'Camiño do Xote 5, bajo, 36693 Redondela',
   phone: '+34 600 000 000',
   email: 'info@cellarstudio.com',

@@ -16,6 +16,7 @@ from app.schemas.appointment import (
     AppointmentUpdate,
     StatusUpdate,
 )
+from app.services.whatsapp_service import send_appointment_whatsapp, send_status_change_whatsapp
 
 router = APIRouter(prefix="/api/admin/appointments", tags=["Admin - Appointments"])
 
@@ -85,6 +86,17 @@ def create_appointment(
     db.add(appointment)
     db.commit()
     db.refresh(appointment)
+
+    # Send WhatsApp confirmation
+    send_appointment_whatsapp(
+        client_phone=client.phone or "",
+        client_name=client.name,
+        barber_name=appointment.barber.name if appointment.barber else "",
+        service_name=service.name,
+        date_str=appointment.date.strftime("%d/%m/%Y"),
+        time_str=appointment.start_time.strftime("%H:%M"),
+    )
+
     return appointment
 
 
@@ -162,4 +174,14 @@ def update_appointment_status(
     appointment.status = data.status
     db.commit()
     db.refresh(appointment)
+
+    # Send WhatsApp status change notification
+    send_status_change_whatsapp(
+        client_phone=appointment.client.phone or "",
+        client_name=appointment.client.name,
+        status=data.status,
+        date_str=appointment.date.strftime("%d/%m/%Y"),
+        time_str=appointment.start_time.strftime("%H:%M"),
+    )
+
     return appointment

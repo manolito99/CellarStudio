@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section class="relative min-h-screen flex items-center justify-center overflow-hidden">
     <!-- Background image -->
     <div class="absolute inset-0">
@@ -26,7 +26,7 @@
 
       <!-- Title -->
       <h1 class="hero-enter hero-delay-2 text-5xl md:text-7xl lg:text-[5.5rem] font-heading font-semibold mb-6 leading-[0.95] tracking-tight">
-        <span class="gradient-text">Cellar Studio</span>
+        <span class="gradient-text">Cellar Barber Studio</span>
       </h1>
 
       <!-- Subtitle -->

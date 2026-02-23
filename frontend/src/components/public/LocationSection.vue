@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section id="location" class="py-24 px-4 bg-white">
     <div class="max-w-6xl mx-auto">
       <div class="text-center mb-16">
@@ -86,7 +86,7 @@
     <div class="max-w-6xl mx-auto">
       <div class="flex flex-col md:flex-row items-center justify-between gap-6">
         <div class="text-center md:text-left">
-          <h3 class="text-xl font-heading font-semibold text-white tracking-tight">Cellar Studio</h3>
+          <h3 class="text-xl font-heading font-semibold text-white tracking-tight">Cellar Barber Studio</h3>
           <p class="text-sm text-gray-500 mt-1">Barbería Premium</p>
         </div>
 
@@ -107,7 +107,7 @@
           </a>
         </div>
 
-        <p class="text-sm text-gray-600">&copy; 2026 Cellar Studio. Todos los derechos reservados.</p>
+        <p class="text-sm text-gray-600">&copy; 2026 Cellar Barber Studio. Todos los derechos reservados.</p>
       </div>
     </div>
   </footer>

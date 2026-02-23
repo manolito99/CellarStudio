@@ -1,6 +1,6 @@
-# Infrastructure & Deployment Documentation
+﻿# Infrastructure & Deployment Documentation
 
-This document describes the complete infrastructure, deployment pipeline, and server configuration for Cellar Studio. It is intended as a reference for future development sessions, DevOps tasks, and onboarding.
+This document describes the complete infrastructure, deployment pipeline, and server configuration for Cellar Barber Studio. It is intended as a reference for future development sessions, DevOps tasks, and onboarding.
 
 ---
 
@@ -23,7 +23,7 @@ This document describes the complete infrastructure, deployment pipeline, and se
 
 ## Overview
 
-Cellar Studio is a barbershop booking platform deployed on an **Oracle Cloud Free Tier** VM. The application consists of three Docker services (PostgreSQL, FastAPI backend, Nginx) orchestrated via Docker Compose. A GitHub Actions workflow automatically deploys on every push to `main`.
+Cellar Barber Studio is a barbershop booking platform deployed on an **Oracle Cloud Free Tier** VM. The application consists of three Docker services (PostgreSQL, FastAPI backend, Nginx) orchestrated via Docker Compose. A GitHub Actions workflow automatically deploys on every push to `main`.
 
 **Production URL**: https://cellarbarberstudio.com
 **Server IP**: `143.47.45.225`
@@ -399,7 +399,7 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
 SMTP_PASSWORD=your-app-password
-SMTP_FROM_NAME=Cellar Studio
+SMTP_FROM_NAME=Cellar Barber Studio
 
 # CORS
 CORS_ORIGINS=http://localhost,http://localhost:5173,http://localhost:80

@@ -1,4 +1,4 @@
-import type { Appointment } from '@/services/adminApi'
+﻿import type { Appointment } from '@/services/adminApi'
 
 function pad(n: number): string {
   return n.toString().padStart(2, '0')
@@ -41,7 +41,7 @@ function appointmentToVEVENT(appt: Appointment): string {
     `DTEND:${dtEnd}`,
     `SUMMARY:${escapeICS(summary)}`,
     `DESCRIPTION:${escapeICS(description)}`,
-    'LOCATION:Cellar Studio',
+    'LOCATION:Cellar Barber Studio',
     `STATUS:${appt.status === 'confirmed' ? 'CONFIRMED' : appt.status === 'cancelled' ? 'CANCELLED' : 'TENTATIVE'}`,
     'END:VEVENT',
   ].join('\r\n')
@@ -52,10 +52,10 @@ function generateICSContent(appointments: Appointment[]): string {
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Cellar Studio//Barbería//ES',
+    'PRODID:-//Cellar Barber Studio//Barbería//ES',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    'X-WR-CALNAME:Cellar Studio Citas',
+    'X-WR-CALNAME:Cellar Barber Studio Citas',
     events,
     'END:VCALENDAR',
   ].join('\r\n')

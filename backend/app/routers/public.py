@@ -14,6 +14,7 @@ from app.schemas.service import ServiceResponse
 from app.services.appointment_service import create_public_appointment
 from app.services.availability_service import get_availability
 from app.services.email_service import send_appointment_confirmation
+from app.services.whatsapp_service import send_appointment_whatsapp
 
 router = APIRouter(prefix="/api/public", tags=["Public"])
 
@@ -58,14 +59,27 @@ def create_appointment(
     # Refresh with relationships
     db.refresh(appointment)
 
+    date_str = appointment.date.strftime("%d/%m/%Y")
+    time_str = appointment.start_time.strftime("%H:%M")
+
     # Send confirmation email
     send_appointment_confirmation(
         client_name=appointment.client.name,
         client_email=appointment.client.email or "",
         barber_name=appointment.barber.name,
         service_name=appointment.service.name,
-        date_str=appointment.date.strftime("%d/%m/%Y"),
-        time_str=appointment.start_time.strftime("%H:%M"),
+        date_str=date_str,
+        time_str=time_str,
+    )
+
+    # Send WhatsApp confirmation
+    send_appointment_whatsapp(
+        client_phone=appointment.client.phone or "",
+        client_name=appointment.client.name,
+        barber_name=appointment.barber.name,
+        service_name=appointment.service.name,
+        date_str=date_str,
+        time_str=time_str,
     )
 
     return appointment

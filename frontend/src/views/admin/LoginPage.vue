@@ -1,11 +1,11 @@
-<template>
+﻿<template>
   <ion-page>
     <ion-content :fullscreen="true">
       <div class="min-h-screen bg-[#fafafa] flex items-center justify-center px-4">
         <div class="w-full max-w-md login-entrance">
           <div class="text-center mb-8">
             <div class="login-item login-delay-0">
-              <h1 class="text-3xl font-heading font-semibold text-[#1d1d1f] mb-2 tracking-tight">Cellar Studio</h1>
+              <h1 class="text-3xl font-heading font-semibold text-[#1d1d1f] mb-2 tracking-tight">Cellar Barber Studio</h1>
               <p class="text-[#86868b]">Panel de administración</p>
             </div>
           </div>

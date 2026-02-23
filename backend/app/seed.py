@@ -1,4 +1,4 @@
-"""Seed script to populate database with initial data."""
+﻿"""Seed script to populate database with initial data."""
 
 import uuid
 from datetime import date, time, timedelta
@@ -73,7 +73,7 @@ def seed():
         barbers_data = [
             {
                 "name": "Maxi Zabaleta",
-                "bio": "Fundador de Cellar Studio. Especialista en cortes y estilos modernos.",
+                "bio": "Fundador de Cellar Barber Studio. Especialista en cortes y estilos modernos.",
                 "sort_order": 1,
             },
         ]

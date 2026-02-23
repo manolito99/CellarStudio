@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <ion-page>
     <ion-content :fullscreen="true">
       <div class="min-h-screen bg-white flex items-center justify-center px-4">
@@ -23,7 +23,7 @@
             ¡Reserva confirmada!
           </h1>
           <p class="confirm-entrance confirm-delay-2 text-[#86868b] mb-10 leading-relaxed">
-            Tu cita fue registrada exitosamente. Te esperamos en Cellar Studio.
+            Tu cita fue registrada exitosamente. Te esperamos en Cellar Barber Studio.
             Si proporcionaste tu email, recibirás una confirmación.
           </p>
 

@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+﻿from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -17,7 +17,12 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 587
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
-    SMTP_FROM_NAME: str = "Cellar Studio"
+    SMTP_FROM_NAME: str = "Cellar Barber Studio"
+
+    # WhatsApp (Meta Cloud API)
+    WHATSAPP_PHONE_NUMBER_ID: str = ""
+    WHATSAPP_ACCESS_TOKEN: str = ""
+    WHATSAPP_REMINDER_HOURS: int = 2
 
     # CORS
     CORS_ORIGINS: str = "http://localhost,http://localhost:5173,http://localhost:80"

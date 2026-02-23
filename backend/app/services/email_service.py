@@ -1,4 +1,4 @@
-"""Email service for sending appointment confirmations and reminders."""
+﻿"""Email service for sending appointment confirmations and reminders."""
 
 import asyncio
 import logging
@@ -51,10 +51,10 @@ def send_appointment_confirmation(
     if not client_email:
         return
 
-    subject = "Confirmación de tu cita - Cellar Studio"
+    subject = "Confirmación de tu cita - Cellar Barber Studio"
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #F2F0E9; color: #2B2E2E; padding: 30px; border-radius: 10px;">
-        <h1 style="color: #A66B4C; text-align: center;">Cellar Studio</h1>
+        <h1 style="color: #A66B4C; text-align: center;">Cellar Barber Studio</h1>
         <h2 style="text-align: center;">¡Cita confirmada!</h2>
         <p>Hola <strong>{client_name}</strong>,</p>
         <p>Tu cita ha sido registrada con éxito:</p>
@@ -66,7 +66,7 @@ def send_appointment_confirmation(
         </div>
         <p>Si necesitas cancelar o modificar tu cita, contáctanos por WhatsApp.</p>
         <p style="color: #595959; font-size: 12px; text-align: center; margin-top: 30px;">
-            Cellar Studio Barbería
+            Cellar Barber Studio Barbería
         </p>
     </div>
     """

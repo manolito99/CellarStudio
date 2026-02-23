@@ -1,8 +1,8 @@
-import type { CapacitorConfig } from '@capacitor/cli'
+﻿import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
   appId: 'com.cellarstudio.app',
-  appName: 'Cellar Studio',
+  appName: 'Cellar Barber Studio',
   webDir: 'dist',
   server: {
     androidScheme: 'https',
