@@ -10,20 +10,8 @@
       <div class="absolute inset-0 bg-gradient-to-b from-white/85 via-white/75 to-white/95"></div>
     </div>
 
-    <!-- Floating orbs -->
-    <div class="absolute inset-0 overflow-hidden">
-      <div class="orb orb-1"></div>
-      <div class="orb orb-2"></div>
-    </div>
-
     <!-- Content -->
     <div class="relative z-10 text-center px-4 max-w-4xl mx-auto">
-      <!-- Badge -->
-      <div class="hero-enter hero-delay-1 mb-8 inline-flex items-center gap-2 px-5 py-2.5 bg-white/60 backdrop-blur-md border border-[#d2d2d7]/60 rounded-full shadow-sm">
-        <span class="w-2 h-2 bg-[#1d1d1f] rounded-full animate-pulse"></span>
-        <span class="text-[#1d1d1f] text-sm font-medium tracking-wide">Barbería Premium</span>
-      </div>
-
       <!-- Title -->
       <h1 class="hero-enter hero-delay-2 text-5xl md:text-7xl lg:text-[5.5rem] font-heading font-semibold mb-6 leading-[0.95] tracking-tight">
         <span class="gradient-text">Cellar Barber Studio</span>
@@ -71,6 +59,14 @@
         </button>
       </div>
 
+      <!-- Next available slot — urgency signal -->
+      <div v-if="props.nextSlot" class="hero-enter hero-delay-4 mt-5 flex items-center justify-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0"></span>
+        <span class="text-sm text-[#6e6e73]">
+          Próximo hueco disponible: <strong class="text-[#1d1d1f] font-semibold">{{ props.nextSlot }}</strong>
+        </span>
+      </div>
+
       <!-- Stats -->
       <div class="hero-enter hero-delay-5 mt-20 grid grid-cols-3 gap-8 max-w-lg mx-auto">
         <div>
@@ -100,6 +96,10 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useCountUp } from '@/composables/useCountUp'
+
+const props = defineProps<{
+  nextSlot?: string
+}>()
 
 const years = useCountUp(5, 1500, '+')
 const clients = useCountUp(3000, 2200, '+')
@@ -133,40 +133,6 @@ onMounted(() => {
 
 .ig-link:hover svg:first-child {
   color: #E1306C;
-}
-
-/* Floating background orbs */
-.orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.15;
-  will-change: transform;
-}
-
-.orb-1 {
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, #d2d2d7 0%, transparent 70%);
-  top: 10%;
-  left: 15%;
-  animation: float 20s ease-in-out infinite;
-}
-
-.orb-2 {
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, #e8e8ed 0%, transparent 70%);
-  bottom: 15%;
-  right: 10%;
-  animation: float 25s ease-in-out infinite reverse;
-}
-
-@keyframes float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(40px, -40px) scale(1.05); }
-  50% { transform: translate(-20px, 30px) scale(0.97); }
-  75% { transform: translate(30px, 20px) scale(1.03); }
 }
 
 /* Scroll indicator (Apple-style mouse shape) */
