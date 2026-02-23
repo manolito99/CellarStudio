@@ -53,3 +53,20 @@ class AvailabilityResponse(BaseModel):
     barber_id: str
     date: dt.date
     slots: list[TimeSlot]
+
+
+class AvailableDayCreate(BaseModel):
+    barber_id: str
+    date: dt.date
+    start_time: dt.time
+    end_time: dt.time
+
+
+class AvailableDayResponse(BaseModel):
+    id: str
+    barber_id: str
+    date: dt.date
+    start_time: dt.time
+    end_time: dt.time
+
+    model_config = {"from_attributes": True}

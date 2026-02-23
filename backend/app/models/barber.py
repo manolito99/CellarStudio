@@ -36,4 +36,5 @@ class Barber(Base):
     services = relationship("Service", secondary=barber_services, back_populates="barbers")
     schedules = relationship("Schedule", back_populates="barber", cascade="all, delete-orphan")
     blocked_slots = relationship("BlockedSlot", back_populates="barber", cascade="all, delete-orphan")
+    available_days = relationship("AvailableDay", back_populates="barber", cascade="all, delete-orphan")
     appointments = relationship("Appointment", back_populates="barber")

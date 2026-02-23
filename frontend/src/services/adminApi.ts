@@ -58,6 +58,14 @@ export interface BlockedSlot {
   reason: string | null
 }
 
+export interface AvailableDay {
+  id: string
+  barber_id: string
+  date: string       // "2026-03-15"
+  start_time: string // "09:00:00"
+  end_time: string   // "20:00:00"
+}
+
 export const adminApi = {
   // Dashboard
   getStats(): Promise<DashboardStats> {
@@ -152,5 +160,16 @@ export const adminApi = {
   },
   deleteBlockedSlot(id: string) {
     return api.delete(`/admin/blocked-slots/${id}`)
+  },
+
+  // Available Days
+  getAvailableDays(barberId: string): Promise<AvailableDay[]> {
+    return api.get('/admin/available-days', { params: { barber_id: barberId } }).then((r) => r.data)
+  },
+  createAvailableDay(data: { barber_id: string; date: string; start_time: string; end_time: string }): Promise<AvailableDay> {
+    return api.post('/admin/available-days', data).then((r) => r.data)
+  },
+  deleteAvailableDay(id: string): Promise<void> {
+    return api.delete(`/admin/available-days/${id}`)
   },
 }

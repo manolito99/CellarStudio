@@ -4,11 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_user, get_db
+from app.models.available_day import AvailableDay
 from app.models.barber import Barber
 from app.models.blocked_slot import BlockedSlot
 from app.models.schedule import Schedule
 from app.models.user import User
 from app.schemas.schedule import (
+    AvailableDayCreate,
+    AvailableDayResponse,
     BlockedSlotCreate,
     BlockedSlotResponse,
     ScheduleResponse,
@@ -103,4 +106,44 @@ def delete_blocked_slot(
     if not slot:
         raise HTTPException(status_code=404, detail="Bloqueo no encontrado")
     db.delete(slot)
+    db.commit()
+
+
+@router.get("/available-days", response_model=list[AvailableDayResponse])
+def list_available_days(
+    barber_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    _: Annotated[User, Depends(get_current_user)],
+):
+    return (
+        db.query(AvailableDay)
+        .filter(AvailableDay.barber_id == barber_id)
+        .order_by(AvailableDay.date)
+        .all()
+    )
+
+
+@router.post("/available-days", response_model=AvailableDayResponse, status_code=status.HTTP_201_CREATED)
+def create_available_day(
+    data: AvailableDayCreate,
+    db: Annotated[Session, Depends(get_db)],
+    _: Annotated[User, Depends(get_current_user)],
+):
+    day = AvailableDay(**data.model_dump())
+    db.add(day)
+    db.commit()
+    db.refresh(day)
+    return day
+
+
+@router.delete("/available-days/{day_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_available_day(
+    day_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    _: Annotated[User, Depends(get_current_user)],
+):
+    day = db.query(AvailableDay).filter(AvailableDay.id == day_id).first()
+    if not day:
+        raise HTTPException(status_code=404, detail="Disponibilidad no encontrada")
+    db.delete(day)
     db.commit()

@@ -5,6 +5,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from sqlalchemy.orm import Session
 
 from app.models.appointment import Appointment
+from app.models.available_day import AvailableDay
 from app.models.blocked_slot import BlockedSlot
 from app.models.schedule import Schedule
 from app.models.service import Service
@@ -24,27 +25,39 @@ def get_availability(
 
     duration = timedelta(minutes=service.duration_minutes)
 
-    # Get schedule for this day of week (Monday=0, Sunday=6)
-    day_of_week = target_date.weekday()
-    schedule = (
-        db.query(Schedule)
-        .filter(Schedule.barber_id == barber_id, Schedule.day_of_week == day_of_week)
+    # Check for specific date availability override first
+    available_day = (
+        db.query(AvailableDay)
+        .filter(AvailableDay.barber_id == barber_id, AvailableDay.date == target_date)
         .first()
     )
 
-    if not schedule:
-        return AvailabilityResponse(barber_id=barber_id, date=target_date, slots=[])
+    if available_day:
+        work_start = available_day.start_time
+        work_end = available_day.end_time
+    else:
+        # Fall back to recurring weekly schedule
+        day_of_week = target_date.weekday()
+        schedule = (
+            db.query(Schedule)
+            .filter(Schedule.barber_id == barber_id, Schedule.day_of_week == day_of_week)
+            .first()
+        )
+        if not schedule:
+            return AvailabilityResponse(barber_id=barber_id, date=target_date, slots=[])
+        work_start = schedule.start_time
+        work_end = schedule.end_time
 
     # Generate all possible slots
     slots: list[TimeSlot] = []
-    current = datetime.combine(target_date, schedule.start_time)
-    end_of_day = datetime.combine(target_date, schedule.end_time)
+    current = datetime.combine(target_date, work_start)
+    end_of_day = datetime.combine(target_date, work_end)
 
     while current + duration <= end_of_day:
         slot_start = current.time()
         slot_end = (current + duration).time()
         slots.append(TimeSlot(start_time=slot_start, end_time=slot_end, available=True))
-        current += timedelta(minutes=60)  # Step by 1 hour
+        current += timedelta(minutes=60)
 
     # Get existing appointments for this barber on this date (not cancelled)
     appointments = (

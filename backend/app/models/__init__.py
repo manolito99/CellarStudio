@@ -5,6 +5,7 @@ from app.models.service import Service
 from app.models.schedule import Schedule
 from app.models.blocked_slot import BlockedSlot
 from app.models.appointment import Appointment
+from app.models.available_day import AvailableDay
 
 __all__ = [
     "User",
@@ -15,4 +16,5 @@ __all__ = [
     "Schedule",
     "BlockedSlot",
     "Appointment",
+    "AvailableDay",
 ]
