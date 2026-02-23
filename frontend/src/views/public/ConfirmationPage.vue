@@ -28,6 +28,37 @@
           </p>
 
           <div class="confirm-entrance confirm-delay-3 flex flex-col gap-3">
+
+            <!-- Calendar buttons (only shown if booking data is available) -->
+            <template v-if="booking">
+              <button
+                @click="downloadICS"
+                class="w-full px-6 py-3.5 bg-[#1d1d1f] text-white font-semibold rounded-2xl flex items-center justify-center gap-2"
+              >
+                <!-- Apple Calendar icon -->
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                </svg>
+                Añadir a Apple Calendar
+              </button>
+
+              <a
+                :href="googleCalendarUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="w-full px-6 py-3.5 border border-[#d2d2d7] text-[#1d1d1f] font-semibold rounded-2xl flex items-center justify-center gap-2"
+              >
+                <!-- Google Calendar icon -->
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                  <path d="M19.5 3h-2V1.5h-1.5V3h-8V1.5H6.5V3h-2C3.67 3 3 3.67 3 4.5v15c0 .83.67 1.5 1.5 1.5h15c.83 0 1.5-.67 1.5-1.5v-15c0-.83-.67-1.5-1.5-1.5zm0 16.5h-15V9h15v10.5zm0-12h-15V4.5h2V6H8V4.5h8V6h1.5V4.5h2V7.5z" fill="#4285F4"/>
+                  <path d="M7.5 11h2v1.5h-2V11zm0 3h2v1.5h-2V14zm3.5-3h2v1.5H11V11zm0 3h2v1.5H11V14zm3.5-3h2v1.5h-2V11zm0 3h2v1.5h-2V14z" fill="#4285F4"/>
+                </svg>
+                Añadir a Google Calendar
+              </a>
+
+              <div class="border-t border-[#e8e8ed] my-1"></div>
+            </template>
+
             <router-link
               to="/booking"
               class="btn-primary w-full px-6 py-3.5 bg-[#1d1d1f] text-white font-semibold rounded-2xl text-center"
@@ -48,7 +79,30 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { IonPage, IonContent } from '@ionic/vue'
+import { downloadPublicBookingICS, getGoogleCalendarUrl as buildGoogleUrl, type PublicBookingData } from '@/utils/icsExport'
+
+// Data passed via router state from BookingPage
+const booking = computed<PublicBookingData | null>(() => {
+  const s = history.state
+  if (!s?.serviceName || !s?.date || !s?.startTime || !s?.endTime) return null
+  return {
+    serviceName: s.serviceName,
+    barberName:  s.barberName,
+    date:        s.date,
+    startTime:   s.startTime,
+    endTime:     s.endTime,
+  }
+})
+
+const googleCalendarUrl = computed(() =>
+  booking.value ? buildGoogleUrl(booking.value) : '#'
+)
+
+function downloadICS() {
+  if (booking.value) downloadPublicBookingICS(booking.value)
+}
 </script>
 
 <style scoped>

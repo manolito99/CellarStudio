@@ -185,7 +185,16 @@ async function confirmBooking() {
       date: selectedDate.value,
       start_time: selectedSlot.value.start_time,
     })
-    router.push('/confirmation')
+    router.push({
+      path: '/confirmation',
+      state: {
+        serviceName: selectedService.value.name,
+        barberName:  selectedBarber.value.name,
+        date:        selectedDate.value,
+        startTime:   selectedSlot.value.start_time,
+        endTime:     selectedSlot.value.end_time,
+      },
+    })
   } catch {
     alert('Error al crear la reserva. Inténtalo de nuevo.')
   } finally {

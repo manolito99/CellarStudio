@@ -1,5 +1,60 @@
 ﻿import type { Appointment } from '@/services/adminApi'
 
+// ─── Public booking (confirmation page) ───────────────────────────────────────
+
+export interface PublicBookingData {
+  serviceName: string
+  barberName: string
+  date: string       // "2026-02-23"
+  startTime: string  // "10:00:00"
+  endTime: string    // "11:00:00"
+}
+
+export function downloadPublicBookingICS(data: PublicBookingData): void {
+  const dtStart = toICSDate(data.date, data.startTime)
+  const dtEnd   = toICSDate(data.date, data.endTime)
+  const content = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Cellar Barber Studio//ES',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    `UID:booking-${data.date}-${data.startTime.replace(/:/g, '')}@cellarbarberstudio`,
+    `DTSTART:${dtStart}`,
+    `DTEND:${dtEnd}`,
+    'SUMMARY:Cita en Cellar Barber Studio',
+    `DESCRIPTION:Servicio: ${escapeICS(data.serviceName)}\\nBarbero: ${escapeICS(data.barberName)}`,
+    'LOCATION:Cellar Barber Studio',
+    'STATUS:TENTATIVE',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n')
+
+  const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = `cita-${data.date}.ics`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+export function getGoogleCalendarUrl(data: PublicBookingData): string {
+  const dtStart = toICSDate(data.date, data.startTime)
+  const dtEnd   = toICSDate(data.date, data.endTime)
+  const params  = new URLSearchParams({
+    action:   'TEMPLATE',
+    text:     'Cita en Cellar Barber Studio',
+    dates:    `${dtStart}/${dtEnd}`,
+    details:  `Servicio: ${data.serviceName}\nBarbero: ${data.barberName}`,
+    location: 'Cellar Barber Studio',
+  })
+  return `https://calendar.google.com/calendar/render?${params.toString()}`
+}
+
 function pad(n: number): string {
   return n.toString().padStart(2, '0')
 }
