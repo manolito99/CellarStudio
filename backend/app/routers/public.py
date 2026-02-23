@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
@@ -48,6 +48,35 @@ def check_availability(
     db: Annotated[Session, Depends(get_db)],
 ):
     return get_availability(db, barber_id, date, service_id)
+
+
+@router.get("/availability/dates")
+def get_available_dates_range(
+    barber_id: Annotated[str, Query()],
+    service_id: Annotated[str, Query()],
+    from_date: Annotated[date, Query(alias="from")],
+    to_date: Annotated[date, Query(alias="to")],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Return dates that have at least one available slot in the given range (max 90 days)."""
+    # Cap range at 90 days to prevent abuse
+    if (to_date - from_date).days > 90:
+        to_date = from_date + timedelta(days=90)
+
+    results = []
+    current = from_date
+    while current <= to_date:
+        availability = get_availability(db, barber_id, current, service_id)
+        available_slots = [s for s in availability.slots if s.available]
+        if available_slots:
+            results.append({
+                "date": current.isoformat(),
+                "first_slot": str(available_slots[0].start_time)[:5],
+                "slots_count": len(available_slots),
+            })
+        current += timedelta(days=1)
+
+    return results
 
 
 @router.post("/appointments", response_model=AppointmentResponse)

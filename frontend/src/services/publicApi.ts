@@ -35,6 +35,12 @@ export interface AvailabilityResponse {
   slots: TimeSlot[]
 }
 
+export interface AvailableDateInfo {
+  date: string        // "2026-03-15"
+  first_slot: string  // "09:00"
+  slots_count: number
+}
+
 export interface AppointmentCreate {
   client_name: string
   client_phone: string
@@ -63,5 +69,11 @@ export const publicApi = {
 
   createAppointment(data: AppointmentCreate) {
     return api.post('/public/appointments', data).then((r) => r.data)
+  },
+
+  getAvailableDates(barberId: string, serviceId: string, from: string, to: string): Promise<AvailableDateInfo[]> {
+    return api.get('/public/availability/dates', {
+      params: { barber_id: barberId, service_id: serviceId, from, to },
+    }).then((r) => r.data)
   },
 }

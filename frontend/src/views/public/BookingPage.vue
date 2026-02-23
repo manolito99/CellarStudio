@@ -46,6 +46,8 @@
             :slots="availableSlots"
             :selectedSlot="selectedSlot"
             :loading="loadingSlots"
+            :barberId="selectedBarber?.id ?? ''"
+            :serviceId="selectedService?.id ?? ''"
             @selectDate="onDateChange"
             @selectSlot="selectedSlot = $event"
           />
