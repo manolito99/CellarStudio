@@ -11,9 +11,10 @@
     <div v-else class="space-y-6">
 
       <!-- Calendar + Recommendations -->
-      <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <!-- Mobile: stacked. Desktop: side by side -->
+      <div class="flex flex-col lg:grid lg:grid-cols-5 gap-4 lg:gap-6">
 
-        <!-- Calendar (3/5 on desktop) -->
+        <!-- Calendar (3/5 on desktop, full width on mobile) -->
         <div class="lg:col-span-3">
           <!-- Month navigation -->
           <div class="flex items-center justify-between mb-4">
@@ -74,59 +75,61 @@
             <div v-for="i in 4" :key="i" class="h-14 bg-[#f5f5f7] rounded-xl animate-pulse" />
           </div>
 
-          <div v-else-if="recommendations.length === 0" class="text-sm text-[#86868b] py-4 text-center">
+          <div v-else-if="displayList.length === 0" class="text-sm text-[#86868b] py-4 text-center">
             No hay fechas disponibles próximamente
           </div>
 
-          <div v-else class="space-y-2 max-h-72 overflow-y-auto pr-1">
-            <button
-              v-for="rec in recommendations"
+          <!-- Mobile: horizontal scroll. Desktop: vertical list -->
+          <div v-else class="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-1 lg:pb-0">
+            <div
+              v-for="rec in displayList"
               :key="rec.date"
-              @click="selectDateStr(rec.date)"
-              class="w-full text-left px-3 py-2.5 rounded-xl border transition-all"
+              class="rounded-xl border overflow-hidden transition-all flex-shrink-0 w-40 lg:w-auto"
               :class="selectedDate === rec.date
-                ? 'border-[#1d1d1f] bg-[#1d1d1f] text-white'
-                : 'border-gray-200 bg-white hover:border-[#1d1d1f] text-[#1d1d1f]'"
+                ? 'border-[#1d1d1f]'
+                : 'border-gray-200'"
             >
-              <div class="text-sm font-semibold capitalize">{{ formatRecDate(rec.date) }}</div>
-              <div
-                class="text-xs mt-0.5"
-                :class="selectedDate === rec.date ? 'text-gray-300' : 'text-[#86868b]'"
+              <!-- Date header — clickable -->
+              <button
+                @click="selectDateStr(rec.date)"
+                class="w-full text-left px-3 py-2.5 transition-all"
+                :class="selectedDate === rec.date
+                  ? 'bg-[#1d1d1f] text-white'
+                  : 'bg-white hover:bg-[#f5f5f7] text-[#1d1d1f]'"
               >
-                {{ rec.slots_count }} {{ rec.slots_count === 1 ? 'hueco' : 'huecos' }} · primer hueco {{ rec.first_slot }}
+                <div class="text-sm font-semibold capitalize">{{ formatRecDate(rec.date) }}</div>
+                <div
+                  class="text-xs mt-0.5"
+                  :class="selectedDate === rec.date ? 'text-gray-300' : 'text-[#86868b]'"
+                >
+                  {{ rec.slots_count }} {{ rec.slots_count === 1 ? 'hueco' : 'huecos' }} · primer hueco {{ rec.first_slot }}
+                </div>
+              </button>
+
+              <!-- Inline time slots — only for the selected date -->
+              <div v-if="selectedDate === rec.date" class="px-2 py-2 bg-[#f5f5f7] border-t border-gray-200">
+                <div v-if="loading" class="flex justify-center py-3">
+                  <ion-spinner name="crescent" color="dark" />
+                </div>
+                <div v-else-if="slots.length === 0" class="text-[#86868b] text-xs py-2 text-center">
+                  No hay horarios
+                </div>
+                <div v-else class="grid grid-cols-2 lg:grid-cols-3 gap-1">
+                  <button
+                    v-for="slot in slots"
+                    :key="slot.start_time"
+                    @click="$emit('selectSlot', slot)"
+                    class="px-2 py-1.5 rounded-lg text-xs font-medium transition-all"
+                    :class="selectedSlot?.start_time === slot.start_time
+                      ? 'bg-[#1d1d1f] text-white'
+                      : 'bg-white border border-gray-200 text-[#1d1d1f] hover:border-[#1d1d1f]'"
+                  >
+                    {{ slot.start_time.substring(0, 5) }}
+                  </button>
+                </div>
               </div>
-            </button>
+            </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Time slots (shown after selecting a date) -->
-      <div v-if="selectedDate">
-        <label class="block text-sm font-semibold text-[#1d1d1f] mb-3">
-          Horas disponibles —
-          <span class="font-normal text-[#86868b] capitalize">{{ formatSelectedDate }}</span>
-        </label>
-
-        <div v-if="loading" class="flex justify-center py-6">
-          <ion-spinner name="crescent" color="dark" />
-        </div>
-
-        <div v-else-if="slots.length === 0" class="text-[#86868b] text-sm py-4 text-center">
-          No hay horarios disponibles para esta fecha
-        </div>
-
-        <div v-else class="grid grid-cols-3 sm:grid-cols-5 gap-2">
-          <button
-            v-for="slot in slots"
-            :key="slot.start_time"
-            @click="$emit('selectSlot', slot)"
-            class="px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
-            :class="selectedSlot?.start_time === slot.start_time
-              ? 'bg-[#1d1d1f] text-white'
-              : 'bg-white border border-gray-200 text-[#1d1d1f] hover:border-[#1d1d1f]'"
-          >
-            {{ slot.start_time.substring(0, 5) }}
-          </button>
         </div>
       </div>
 
@@ -282,6 +285,17 @@ const recommendations = computed<AvailableDateInfo[]>(() => {
     .filter(d => d.date >= today)
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 6)
+})
+
+// If the date selected from the calendar is not in the recommendations list,
+// prepend it so the inline slots can expand under it
+const displayList = computed<AvailableDateInfo[]>(() => {
+  const recs = recommendations.value
+  if (!props.selectedDate) return recs
+  const inList = recs.some(r => r.date === props.selectedDate)
+  if (inList) return recs
+  const info = availableDatesMap.value.get(props.selectedDate)
+  return info ? [info, ...recs] : recs
 })
 
 // ── Formatting ────────────────────────────────────────────────────────────────
