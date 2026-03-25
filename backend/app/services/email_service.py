@@ -96,16 +96,8 @@ def _build_ics_content(
 # HTML email template builder
 # ---------------------------------------------------------------------------
 
-# Inline SVG logo — text-based, works in all modern email clients.
-# The <!--[if mso]> block provides a plain-text fallback for Outlook.
-_LOGO_HTML = """\
-<!--[if !mso]><!-->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 52" width="200" height="32" style="display:block;">
-  <text y="40" fill="#ffffff" font-family="Georgia,serif" font-size="34" font-weight="bold" letter-spacing="8">CELLAR</text>
-  <text x="188" y="40" fill="#A66B4C" font-family="Georgia,serif" font-size="34" letter-spacing="8">STUDIO</text>
-</svg>
-<!--<![endif]-->
-<!--[if mso]><div style="color:#ffffff;font-family:Georgia,serif;font-size:28px;letter-spacing:8px;font-weight:bold;">CELLAR <span style="color:#A66B4C;">STUDIO</span></div><![endif]-->"""
+# Logo URL hosted on the production server (referenced in email — no base64 needed)
+_LOGO_URL = "https://cellarbarberstudio.com/icons/CellarStudio_Logo.png"
 
 
 def _build_appointment_email_html(
@@ -179,10 +171,21 @@ def _build_appointment_email_html(
       <table width="600" cellpadding="0" cellspacing="0" border="0"
              style="max-width:600px;width:100%;border-radius:8px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.12);">
 
-        <!-- HEADER — dark background with logo -->
+        <!-- HEADER — dark background with circular logo -->
         <tr>
-          <td bgcolor="#0d0d0d" style="background-color:#0d0d0d;padding:28px 40px;">
-            {_LOGO_HTML}
+          <td bgcolor="#0d0d0d" style="background-color:#0d0d0d;padding:32px 40px;text-align:center;">
+            <!--[if mso]>
+            <table cellpadding="0" cellspacing="0" border="0" align="center"><tr><td style="border-radius:50%;background:#ffffff;padding:4px;">
+            <![endif]-->
+            <img src="{_LOGO_URL}"
+                 width="110" height="110"
+                 alt="Cellar Barber Studio"
+                 style="display:block;margin:0 auto;
+                        width:110px;height:110px;
+                        border-radius:50%;
+                        border:3px solid #A66B4C;
+                        object-fit:cover;">
+            <!--[if mso]></td></tr></table><![endif]-->
           </td>
         </tr>
 
