@@ -12,18 +12,25 @@ logger = logging.getLogger(__name__)
 
 
 def send_appointment_reminders():
-    """Check for upcoming appointments and send WhatsApp reminders."""
+    """Check for upcoming appointments and send WhatsApp + email reminders."""
+    import asyncio
+
     from app.database import SessionLocal
     from app.models.appointment import Appointment
     from app.services.whatsapp_service import send_reminder_whatsapp
+    from app.services.email_service import send_appointment_reminder
 
     now = datetime.now(timezone.utc)
-    reminder_hours = settings.WHATSAPP_REMINDER_HOURS
-    target_time = now + timedelta(hours=reminder_hours)
 
     db = SessionLocal()
     try:
-        appointments = (
+        # ------------------------------------------------------------------
+        # Pass 1 — WhatsApp reminder (2h before, configurable)
+        # ------------------------------------------------------------------
+        reminder_hours = settings.WHATSAPP_REMINDER_HOURS
+        target_time = now + timedelta(hours=reminder_hours)
+
+        whatsapp_appointments = (
             db.query(Appointment)
             .filter(
                 Appointment.status.in_(["pending", "confirmed"]),
@@ -33,7 +40,7 @@ def send_appointment_reminders():
             .all()
         )
 
-        for appt in appointments:
+        for appt in whatsapp_appointments:
             appt_datetime = datetime.combine(
                 appt.date, appt.start_time, tzinfo=timezone.utc
             )
@@ -49,7 +56,49 @@ def send_appointment_reminders():
                     time_str=appt.start_time.strftime("%H:%M"),
                 )
                 appt.reminder_sent = True
-                logger.info(f"Reminder sent for appointment {appt.id}")
+                logger.info(f"WhatsApp reminder sent for appointment {appt.id}")
+
+        # ------------------------------------------------------------------
+        # Pass 2 — Email reminder (24h before)
+        # Using a 23h lookahead so the 30-min scheduler always covers each
+        # date in the window exactly once.
+        # ------------------------------------------------------------------
+        email_target_date = (now + timedelta(hours=23)).date()
+
+        email_appointments = (
+            db.query(Appointment)
+            .filter(
+                Appointment.status.in_(["pending", "confirmed"]),
+                Appointment.email_reminder_sent.is_(False),
+                Appointment.date == email_target_date,
+            )
+            .all()
+        )
+
+        for appt in email_appointments:
+            if not appt.client.email:
+                continue
+            try:
+                asyncio.run(
+                    send_appointment_reminder(
+                        client_name=appt.client.name,
+                        client_email=appt.client.email,
+                        barber_name=appt.barber.name,
+                        service_name=appt.service.name,
+                        date_str=appt.date.strftime("%d/%m/%Y"),
+                        time_str=appt.start_time.strftime("%H:%M"),
+                        appointment_id=appt.id,
+                        date_obj=appt.date,
+                        start_time_obj=appt.start_time,
+                        end_time_obj=appt.end_time,
+                        duration_minutes=appt.service.duration_minutes,
+                    )
+                )
+                appt.email_reminder_sent = True
+                logger.info(f"Email reminder sent for appointment {appt.id}")
+            except Exception as e:
+                logger.error(f"Email reminder failed for appointment {appt.id}: {e}")
+                # Isolated failure — continue with remaining appointments
 
         db.commit()
     except Exception as e:

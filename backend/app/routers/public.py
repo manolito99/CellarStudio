@@ -80,7 +80,7 @@ def get_available_dates_range(
 
 
 @router.post("/appointments", response_model=AppointmentResponse)
-def create_appointment(
+async def create_appointment(
     data: AppointmentCreate,
     db: Annotated[Session, Depends(get_db)],
 ):
@@ -91,14 +91,19 @@ def create_appointment(
     date_str = appointment.date.strftime("%d/%m/%Y")
     time_str = appointment.start_time.strftime("%H:%M")
 
-    # Send confirmation email
-    send_appointment_confirmation(
+    # Send confirmation email with ICS attachment
+    await send_appointment_confirmation(
         client_name=appointment.client.name,
         client_email=appointment.client.email or "",
         barber_name=appointment.barber.name,
         service_name=appointment.service.name,
         date_str=date_str,
         time_str=time_str,
+        appointment_id=appointment.id,
+        date_obj=appointment.date,
+        start_time_obj=appointment.start_time,
+        end_time_obj=appointment.end_time,
+        duration_minutes=appointment.service.duration_minutes,
     )
 
     # Send WhatsApp confirmation

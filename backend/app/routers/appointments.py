@@ -16,6 +16,7 @@ from app.schemas.appointment import (
     AppointmentUpdate,
     StatusUpdate,
 )
+from app.services.email_service import send_appointment_confirmation
 from app.services.whatsapp_service import send_appointment_whatsapp, send_status_change_whatsapp
 
 router = APIRouter(prefix="/api/admin/appointments", tags=["Admin - Appointments"])
@@ -58,7 +59,7 @@ def list_appointments(
 
 
 @router.post("/", response_model=AppointmentResponse, status_code=status.HTTP_201_CREATED)
-def create_appointment(
+async def create_appointment(
     data: AppointmentAdminCreate,
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[User, Depends(get_current_user)],
@@ -87,14 +88,33 @@ def create_appointment(
     db.commit()
     db.refresh(appointment)
 
+    date_str = appointment.date.strftime("%d/%m/%Y")
+    time_str = appointment.start_time.strftime("%H:%M")
+
+    # Send confirmation email with ICS attachment
+    if client.email:
+        await send_appointment_confirmation(
+            client_name=client.name,
+            client_email=client.email,
+            barber_name=appointment.barber.name if appointment.barber else "",
+            service_name=service.name,
+            date_str=date_str,
+            time_str=time_str,
+            appointment_id=appointment.id,
+            date_obj=appointment.date,
+            start_time_obj=appointment.start_time,
+            end_time_obj=appointment.end_time,
+            duration_minutes=service.duration_minutes,
+        )
+
     # Send WhatsApp confirmation
     send_appointment_whatsapp(
         client_phone=client.phone or "",
         client_name=client.name,
         barber_name=appointment.barber.name if appointment.barber else "",
         service_name=service.name,
-        date_str=appointment.date.strftime("%d/%m/%Y"),
-        time_str=appointment.start_time.strftime("%H:%M"),
+        date_str=date_str,
+        time_str=time_str,
     )
 
     return appointment
