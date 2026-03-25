@@ -31,4 +31,8 @@ export const authApi = {
   me(): Promise<UserResponse> {
     return api.get('/auth/me').then((r) => r.data)
   },
+
+  changePassword(data: { current_password: string; new_password: string }): Promise<void> {
+    return api.patch('/auth/me/password', data)
+  },
 }
