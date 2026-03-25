@@ -17,46 +17,40 @@
 
     <div v-if="selectedBarberId" class="space-y-4">
 
-      <!-- Weekly schedule card — per-day times -->
+      <!-- Weekly schedule card — per-day split shifts -->
       <div class="bg-white border border-gray-200 rounded-xl p-5">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-sm font-semibold text-[#1d1d1f]">Horario semanal recurrente</h3>
+          <div>
+            <h3 class="text-sm font-semibold text-[#1d1d1f]">Horario semanal recurrente</h3>
+            <p class="text-xs text-[#86868b] mt-0.5">Podés configurar varios tramos por día (turno partido)</p>
+          </div>
           <button
             @click="saveRecurring"
             :disabled="savingRecurring"
-            class="px-3 py-1.5 bg-[#1d1d1f] text-white text-xs font-medium rounded-lg disabled:opacity-50"
+            class="px-3 py-1.5 bg-[#1d1d1f] text-white text-xs font-medium rounded-lg disabled:opacity-50 shrink-0"
           >
             {{ savingRecurring ? 'Guardando...' : 'Guardar horario' }}
           </button>
-        </div>
-
-        <!-- Table header -->
-        <div class="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 items-center text-xs text-[#86868b] font-medium pb-2 border-b border-gray-100 mb-1">
-          <span>Día</span>
-          <span class="w-16 text-center">Abierto</span>
-          <span class="w-20 text-center">Entrada</span>
-          <span class="w-20 text-center">Salida</span>
         </div>
 
         <!-- Row per day -->
         <div
           v-for="cfg in dayConfigs"
           :key="cfg.day"
-          class="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 items-center py-2 border-b border-gray-50 last:border-0"
+          class="py-3 border-b border-gray-50 last:border-0"
         >
-          <span
-            class="text-sm font-medium"
-            :class="cfg.isOpen ? 'text-[#1d1d1f]' : 'text-[#86868b]'"
-          >
-            {{ cfg.name }}
-          </span>
-
-          <!-- Toggle -->
-          <div class="w-16 flex justify-center">
+          <!-- Day header: name + toggle -->
+          <div class="flex items-center justify-between">
+            <span
+              class="text-sm font-medium"
+              :class="cfg.isOpen ? 'text-[#1d1d1f]' : 'text-[#86868b]'"
+            >
+              {{ cfg.name }}
+            </span>
             <button
-              @click="cfg.isOpen = !cfg.isOpen"
+              @click="toggleDayOpen(cfg)"
               :disabled="savingRecurring"
-              class="w-10 h-6 rounded-full transition-colors relative"
+              class="w-10 h-6 rounded-full transition-colors relative shrink-0"
               :class="cfg.isOpen ? 'bg-[#1d1d1f]' : 'bg-[#e5e5ea]'"
             >
               <span
@@ -66,21 +60,54 @@
             </button>
           </div>
 
-          <!-- Start time -->
-          <input
-            type="time"
-            v-model="cfg.start"
-            :disabled="!cfg.isOpen || savingRecurring"
-            class="w-20 px-2 py-1 bg-[#f5f5f7] border border-gray-200 rounded text-sm text-[#1d1d1f] focus:border-[#1d1d1f] focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed"
-          />
+          <!-- Blocks (when open) -->
+          <div v-if="cfg.isOpen" class="mt-2 space-y-2">
+            <div
+              v-for="(block, bi) in cfg.blocks"
+              :key="bi"
+              class="flex items-center gap-2"
+            >
+              <!-- Start time -->
+              <input
+                type="time"
+                v-model="block.start"
+                :disabled="savingRecurring"
+                class="w-24 px-2 py-1.5 bg-[#f5f5f7] border border-gray-200 rounded-lg text-sm text-[#1d1d1f] focus:border-[#1d1d1f] focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed"
+              />
+              <span class="text-[#86868b] text-sm select-none">–</span>
+              <!-- End time -->
+              <input
+                type="time"
+                v-model="block.end"
+                :disabled="savingRecurring"
+                class="w-24 px-2 py-1.5 bg-[#f5f5f7] border border-gray-200 rounded-lg text-sm text-[#1d1d1f] focus:border-[#1d1d1f] focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed"
+              />
+              <!-- Remove block -->
+              <button
+                v-if="cfg.blocks.length > 1"
+                @click="removeBlock(cfg, bi)"
+                :disabled="savingRecurring"
+                class="w-6 h-6 flex items-center justify-center rounded-full text-[#86868b] hover:bg-[#f5f5f7] hover:text-[#ff3b30] transition-colors disabled:opacity-30"
+                title="Eliminar tramo"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
 
-          <!-- End time -->
-          <input
-            type="time"
-            v-model="cfg.end"
-            :disabled="!cfg.isOpen || savingRecurring"
-            class="w-20 px-2 py-1 bg-[#f5f5f7] border border-gray-200 rounded text-sm text-[#1d1d1f] focus:border-[#1d1d1f] focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed"
-          />
+            <!-- Add block -->
+            <button
+              @click="addBlock(cfg)"
+              :disabled="savingRecurring"
+              class="flex items-center gap-1 text-xs text-[#86868b] hover:text-[#1d1d1f] transition-colors mt-1 disabled:opacity-30"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+              </svg>
+              Agregar tramo
+            </button>
+          </div>
         </div>
       </div>
 
@@ -164,12 +191,16 @@ const DAY_FULL_NAMES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'S
 const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 
 // ── Types ─────────────────────────────────────────────────────────────────────
+interface TimeBlock {
+  start: string  // 'HH:MM'
+  end: string    // 'HH:MM'
+}
+
 interface DayConfig {
   day: number     // 0 = Lunes … 6 = Domingo
   name: string
   isOpen: boolean
-  start: string   // 'HH:MM'
-  end: string     // 'HH:MM'
+  blocks: TimeBlock[]
 }
 
 // ── State ────────────────────────────────────────────────────────────────────
@@ -181,8 +212,7 @@ const dayConfigs = ref<DayConfig[]>(
     day: i,
     name,
     isOpen: false,
-    start: '09:00',
-    end: '20:00',
+    blocks: [{ start: '09:00', end: '20:00' }],
   }))
 )
 
@@ -214,6 +244,27 @@ const calendarDays = computed(() => {
   while (days.length % 7 !== 0) days.push(null)
   return days
 })
+
+// ── Block helpers ─────────────────────────────────────────────────────────────
+function toggleDayOpen(cfg: DayConfig) {
+  cfg.isOpen = !cfg.isOpen
+  if (cfg.isOpen && cfg.blocks.length === 0) {
+    cfg.blocks = [{ start: '09:00', end: '20:00' }]
+  }
+}
+
+function addBlock(cfg: DayConfig) {
+  // Default new block starts after the last one
+  const last = cfg.blocks[cfg.blocks.length - 1]
+  cfg.blocks.push({ start: last?.end ?? '09:00', end: '20:00' })
+}
+
+function removeBlock(cfg: DayConfig, index: number) {
+  cfg.blocks.splice(index, 1)
+  if (cfg.blocks.length === 0) {
+    cfg.isOpen = false
+  }
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function dateStr(d: Date): string {
@@ -272,15 +323,19 @@ async function loadData() {
     availableDays.value = avDays
     blockedSlots.value = blocks
 
-    // Populate per-day configs from schedule entries
+    // Populate per-day configs — group multiple entries per day_of_week
     dayConfigs.value = DAY_FULL_NAMES.map((name, i) => {
-      const entry = entries.find((e: ScheduleEntry) => e.day_of_week === i)
+      const dayEntries = entries.filter((e: ScheduleEntry) => e.day_of_week === i)
       return {
         day: i,
         name,
-        isOpen: !!entry,
-        start: entry ? entry.start_time.substring(0, 5) : '09:00',
-        end: entry ? entry.end_time.substring(0, 5) : '20:00',
+        isOpen: dayEntries.length > 0,
+        blocks: dayEntries.length > 0
+          ? dayEntries.map((e: ScheduleEntry) => ({
+              start: e.start_time.substring(0, 5),
+              end: e.end_time.substring(0, 5),
+            }))
+          : [{ start: '09:00', end: '20:00' }],
       }
     })
   } finally {
@@ -293,13 +348,16 @@ async function saveRecurring() {
   if (!selectedBarberId.value) return
   savingRecurring.value = true
   try {
+    // Flatten: each open day contributes one entry per block
     const schedules = dayConfigs.value
       .filter(c => c.isOpen)
-      .map(c => ({
-        day_of_week: c.day,
-        start_time: c.start + ':00',
-        end_time: c.end + ':00',
-      }))
+      .flatMap(c =>
+        c.blocks.map(b => ({
+          day_of_week: c.day,
+          start_time: b.start + ':00',
+          end_time: b.end + ':00',
+        }))
+      )
     await adminApi.updateBarberSchedule(selectedBarberId.value, schedules)
   } finally {
     savingRecurring.value = false
@@ -321,11 +379,11 @@ async function toggleDay(d: Date) {
       return
     }
 
-    // 2. Has a specific AvailableDay? → remove it (close the day)
-    const specificAvail = availableDays.value.find(a => a.date === ds)
-    if (specificAvail) {
-      await adminApi.deleteAvailableDay(specificAvail.id)
-      availableDays.value = availableDays.value.filter(a => a.id !== specificAvail.id)
+    // 2. Has specific AvailableDay records? → remove all for this date (close the day)
+    const specificAvails = availableDays.value.filter(a => a.date === ds)
+    if (specificAvails.length > 0) {
+      await Promise.all(specificAvails.map(a => adminApi.deleteAvailableDay(a.id)))
+      availableDays.value = availableDays.value.filter(a => a.date !== ds)
       return
     }
 
@@ -343,15 +401,19 @@ async function toggleDay(d: Date) {
       return
     }
 
-    // 4. Not available at all? → add specific AvailableDay (exception opening)
-    // Use the recurring hours for this weekday if configured, else default
-    const newDay = await adminApi.createAvailableDay({
-      barber_id: selectedBarberId.value,
-      date: ds,
-      start_time: (cfg?.start ?? '09:00') + ':00',
-      end_time: (cfg?.end ?? '20:00') + ':00',
-    })
-    availableDays.value.push(newDay)
+    // 4. Not available at all? → add AvailableDays for this date (one per recurring block)
+    const blocks = cfg?.blocks ?? [{ start: '09:00', end: '20:00' }]
+    const newDays = await Promise.all(
+      blocks.map(b =>
+        adminApi.createAvailableDay({
+          barber_id: selectedBarberId.value,
+          date: ds,
+          start_time: b.start + ':00',
+          end_time: b.end + ':00',
+        })
+      )
+    )
+    availableDays.value.push(...newDays)
 
   } finally {
     togglingDate.value = null

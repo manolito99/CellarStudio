@@ -25,39 +25,39 @@ def get_availability(
 
     duration = timedelta(minutes=service.duration_minutes)
 
-    # Check for specific date availability override first
-    available_day = (
+    # Check for specific date availability override first (supports multiple blocks per day)
+    available_day_records = (
         db.query(AvailableDay)
         .filter(AvailableDay.barber_id == barber_id, AvailableDay.date == target_date)
-        .first()
+        .order_by(AvailableDay.start_time)
+        .all()
     )
 
-    if available_day:
-        work_start = available_day.start_time
-        work_end = available_day.end_time
+    if available_day_records:
+        work_blocks = [(r.start_time, r.end_time) for r in available_day_records]
     else:
-        # Fall back to recurring weekly schedule
+        # Fall back to recurring weekly schedule (supports split shifts)
         day_of_week = target_date.weekday()
-        schedule = (
+        schedule_records = (
             db.query(Schedule)
             .filter(Schedule.barber_id == barber_id, Schedule.day_of_week == day_of_week)
-            .first()
+            .order_by(Schedule.start_time)
+            .all()
         )
-        if not schedule:
+        if not schedule_records:
             return AvailabilityResponse(barber_id=barber_id, date=target_date, slots=[])
-        work_start = schedule.start_time
-        work_end = schedule.end_time
+        work_blocks = [(s.start_time, s.end_time) for s in schedule_records]
 
-    # Generate all possible slots
+    # Generate all possible slots across all work blocks (supports split shifts)
     slots: list[TimeSlot] = []
-    current = datetime.combine(target_date, work_start)
-    end_of_day = datetime.combine(target_date, work_end)
-
-    while current + duration <= end_of_day:
-        slot_start = current.time()
-        slot_end = (current + duration).time()
-        slots.append(TimeSlot(start_time=slot_start, end_time=slot_end, available=True))
-        current += timedelta(minutes=60)
+    for work_start, work_end in work_blocks:
+        current = datetime.combine(target_date, work_start)
+        end_of_block = datetime.combine(target_date, work_end)
+        while current + duration <= end_of_block:
+            slot_start = current.time()
+            slot_end = (current + duration).time()
+            slots.append(TimeSlot(start_time=slot_start, end_time=slot_end, available=True))
+            current += timedelta(minutes=60)
 
     # Get existing appointments for this barber on this date (not cancelled)
     appointments = (
