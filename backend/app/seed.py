@@ -41,24 +41,24 @@ def seed():
         # --- Services ---
         services_data = [
             {
-                "name": "Corte Clásico",
-                "description": "Corte de cabello con tijera y máquina. Incluye lavado y peinado.",
+                "name": "Color",
+                "description": "Coloración profesional personalizada. Duración a consultar según el trabajo.",
                 "price": 0,
-                "duration_minutes": 60,
+                "duration_minutes": 0,
                 "sort_order": 1,
             },
             {
-                "name": "Corte + Barba",
-                "description": "Corte de cabello completo y perfilado de barba.",
+                "name": "Haircut",
+                "description": "Corte de cabello con tijera y máquina. Incluye lavado y peinado.",
                 "price": 0,
                 "duration_minutes": 60,
                 "sort_order": 2,
             },
             {
-                "name": "Mechas",
-                "description": "Mechas personalizadas. Duración a consultar según el trabajo.",
+                "name": "Haircut & Beard",
+                "description": "Corte de cabello completo y perfilado de barba.",
                 "price": 0,
-                "duration_minutes": 120,
+                "duration_minutes": 60,
                 "sort_order": 3,
             },
         ]

@@ -2,9 +2,8 @@
   <section id="team" class="py-24 px-4 bg-white">
     <div class="max-w-6xl mx-auto">
       <div class="text-center mb-16">
-        <span v-reveal="'blur'" class="text-[#86868b] text-sm font-semibold uppercase tracking-[0.2em]">Nuestro equipo</span>
-        <h2 v-reveal="'blur'" data-delay="100" class="text-4xl md:text-5xl font-heading font-semibold text-[#1d1d1f] mt-3 tracking-tight">
-          Los mejores barberos
+        <h2 v-reveal="'blur'" class="text-4xl md:text-5xl font-heading font-semibold text-[#1d1d1f] mt-3 tracking-tight">
+          Nuestro Equipo
         </h2>
         <div v-reveal data-delay="200" class="divider-shimmer w-16 mx-auto mt-5"></div>
       </div>

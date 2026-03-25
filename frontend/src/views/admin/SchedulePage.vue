@@ -17,47 +17,70 @@
 
     <div v-if="selectedBarberId" class="space-y-4">
 
-      <!-- Working hours + recurring weekdays card -->
+      <!-- Weekly schedule card — per-day times -->
       <div class="bg-white border border-gray-200 rounded-xl p-5">
-
-        <!-- Hours row -->
-        <div class="flex flex-wrap items-center gap-3 mb-5">
-          <span class="text-sm font-medium text-[#1d1d1f]">Horario de trabajo:</span>
-          <input
-            type="time" v-model="workStart"
-            class="px-2 py-1 bg-[#f5f5f7] border border-gray-200 rounded text-sm text-[#1d1d1f] focus:border-[#1d1d1f] focus:outline-none"
-          />
-          <span class="text-[#86868b] text-sm">—</span>
-          <input
-            type="time" v-model="workEnd"
-            class="px-2 py-1 bg-[#f5f5f7] border border-gray-200 rounded text-sm text-[#1d1d1f] focus:border-[#1d1d1f] focus:outline-none"
-          />
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold text-[#1d1d1f]">Horario semanal recurrente</h3>
           <button
             @click="saveRecurring"
             :disabled="savingRecurring"
-            class="ml-auto px-3 py-1.5 bg-[#1d1d1f] text-white text-xs font-medium rounded-lg disabled:opacity-50"
+            class="px-3 py-1.5 bg-[#1d1d1f] text-white text-xs font-medium rounded-lg disabled:opacity-50"
           >
             {{ savingRecurring ? 'Guardando...' : 'Guardar horario' }}
           </button>
         </div>
 
-        <!-- Recurring weekday toggles -->
-        <div>
-          <p class="text-xs text-[#86868b] mb-2">Días recurrentes — se repiten cada semana. Clic para activar/desactivar.</p>
-          <div class="flex gap-1.5 flex-wrap">
+        <!-- Table header -->
+        <div class="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 items-center text-xs text-[#86868b] font-medium pb-2 border-b border-gray-100 mb-1">
+          <span>Día</span>
+          <span class="w-16 text-center">Abierto</span>
+          <span class="w-20 text-center">Entrada</span>
+          <span class="w-20 text-center">Salida</span>
+        </div>
+
+        <!-- Row per day -->
+        <div
+          v-for="cfg in dayConfigs"
+          :key="cfg.day"
+          class="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 items-center py-2 border-b border-gray-50 last:border-0"
+        >
+          <span
+            class="text-sm font-medium"
+            :class="cfg.isOpen ? 'text-[#1d1d1f]' : 'text-[#86868b]'"
+          >
+            {{ cfg.name }}
+          </span>
+
+          <!-- Toggle -->
+          <div class="w-16 flex justify-center">
             <button
-              v-for="(name, i) in DAY_NAMES"
-              :key="i"
-              @click="toggleWeekday(i)"
+              @click="cfg.isOpen = !cfg.isOpen"
               :disabled="savingRecurring"
-              class="w-10 h-10 rounded-full text-sm font-semibold transition-all disabled:opacity-50"
-              :class="activeWeekdays.has(i)
-                ? 'bg-[#1d1d1f] text-white'
-                : 'bg-[#f5f5f7] text-[#86868b] hover:bg-[#e8e8ed]'"
+              class="w-10 h-6 rounded-full transition-colors relative"
+              :class="cfg.isOpen ? 'bg-[#1d1d1f]' : 'bg-[#e5e5ea]'"
             >
-              {{ name }}
+              <span
+                class="absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all"
+                :class="cfg.isOpen ? 'left-5' : 'left-1'"
+              />
             </button>
           </div>
+
+          <!-- Start time -->
+          <input
+            type="time"
+            v-model="cfg.start"
+            :disabled="!cfg.isOpen || savingRecurring"
+            class="w-20 px-2 py-1 bg-[#f5f5f7] border border-gray-200 rounded text-sm text-[#1d1d1f] focus:border-[#1d1d1f] focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed"
+          />
+
+          <!-- End time -->
+          <input
+            type="time"
+            v-model="cfg.end"
+            :disabled="!cfg.isOpen || savingRecurring"
+            class="w-20 px-2 py-1 bg-[#f5f5f7] border border-gray-200 rounded text-sm text-[#1d1d1f] focus:border-[#1d1d1f] focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed"
+          />
         </div>
       </div>
 
@@ -137,16 +160,32 @@ import { computed, ref, onMounted } from 'vue'
 import { adminApi, type ScheduleEntry, type BlockedSlot, type AvailableDay } from '@/services/adminApi'
 
 const DAY_NAMES = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do']
+const DAY_FULL_NAMES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+interface DayConfig {
+  day: number     // 0 = Lunes … 6 = Domingo
+  name: string
+  isOpen: boolean
+  start: string   // 'HH:MM'
+  end: string     // 'HH:MM'
+}
 
 // ── State ────────────────────────────────────────────────────────────────────
 const barbers = ref<{ id: string; name: string }[]>([])
 const selectedBarberId = ref('')
 
-const workStart = ref('09:00')
-const workEnd = ref('20:00')
-const activeWeekdays = ref<Set<number>>(new Set())
-const scheduleEntries = ref<ScheduleEntry[]>([])
+const dayConfigs = ref<DayConfig[]>(
+  DAY_FULL_NAMES.map((name, i) => ({
+    day: i,
+    name,
+    isOpen: false,
+    start: '09:00',
+    end: '20:00',
+  }))
+)
+
 const availableDays = ref<AvailableDay[]>([])
 const blockedSlots = ref<BlockedSlot[]>([])
 
@@ -198,7 +237,7 @@ function isDayAvailable(d: Date): boolean {
   if (hasFullBlock) return false
   const hasSpecific = availableDays.value.some(a => a.date === ds)
   if (hasSpecific) return true
-  return activeWeekdays.value.has(weekdayOf(d))
+  return dayConfigs.value.find(c => c.day === weekdayOf(d))?.isOpen ?? false
 }
 
 function isToday(d: Date): boolean {
@@ -230,49 +269,38 @@ async function loadData() {
       adminApi.getBlockedSlots(selectedBarberId.value),
     ])
 
-    scheduleEntries.value = entries
     availableDays.value = avDays
     blockedSlots.value = blocks
 
-    const wds = new Set<number>()
-    for (const e of entries) {
-      wds.add(e.day_of_week)
-    }
-    activeWeekdays.value = wds
-
-    // Use existing schedule time as default for work hours
-    if (entries.length > 0) {
-      workStart.value = entries[0].start_time.substring(0, 5)
-      workEnd.value = entries[0].end_time.substring(0, 5)
-    }
+    // Populate per-day configs from schedule entries
+    dayConfigs.value = DAY_FULL_NAMES.map((name, i) => {
+      const entry = entries.find((e: ScheduleEntry) => e.day_of_week === i)
+      return {
+        day: i,
+        name,
+        isOpen: !!entry,
+        start: entry ? entry.start_time.substring(0, 5) : '09:00',
+        end: entry ? entry.end_time.substring(0, 5) : '20:00',
+      }
+    })
   } finally {
     loading.value = false
   }
 }
 
-// ── Toggle weekday (recurring) ───────────────────────────────────────────────
-async function toggleWeekday(wd: number) {
-  if (!selectedBarberId.value) return
-  const next = new Set(activeWeekdays.value)
-  if (next.has(wd)) {
-    next.delete(wd)
-  } else {
-    next.add(wd)
-  }
-  activeWeekdays.value = next
-  await saveRecurring()
-}
-
+// ── Save recurring schedule ───────────────────────────────────────────────────
 async function saveRecurring() {
+  if (!selectedBarberId.value) return
   savingRecurring.value = true
   try {
-    const schedules = Array.from(activeWeekdays.value).map(day => ({
-      day_of_week: day,
-      start_time: workStart.value + ':00',
-      end_time: workEnd.value + ':00',
-    }))
-    const updated = await adminApi.updateBarberSchedule(selectedBarberId.value, schedules)
-    scheduleEntries.value = updated
+    const schedules = dayConfigs.value
+      .filter(c => c.isOpen)
+      .map(c => ({
+        day_of_week: c.day,
+        start_time: c.start + ':00',
+        end_time: c.end + ':00',
+      }))
+    await adminApi.updateBarberSchedule(selectedBarberId.value, schedules)
   } finally {
     savingRecurring.value = false
   }
@@ -302,7 +330,8 @@ async function toggleDay(d: Date) {
     }
 
     // 3. Is available via recurring weekday? → add full-day block (exception closure)
-    if (activeWeekdays.value.has(weekdayOf(d))) {
+    const cfg = dayConfigs.value.find(c => c.day === weekdayOf(d))
+    if (cfg?.isOpen) {
       const newBlock = await adminApi.createBlockedSlot({
         barber_id: selectedBarberId.value,
         date: ds,
@@ -315,11 +344,12 @@ async function toggleDay(d: Date) {
     }
 
     // 4. Not available at all? → add specific AvailableDay (exception opening)
+    // Use the recurring hours for this weekday if configured, else default
     const newDay = await adminApi.createAvailableDay({
       barber_id: selectedBarberId.value,
       date: ds,
-      start_time: workStart.value + ':00',
-      end_time: workEnd.value + ':00',
+      start_time: (cfg?.start ?? '09:00') + ':00',
+      end_time: (cfg?.end ?? '20:00') + ':00',
     })
     availableDays.value.push(newDay)
 

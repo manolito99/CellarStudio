@@ -68,18 +68,10 @@
       </div>
 
       <!-- Stats -->
-      <div class="hero-enter hero-delay-5 mt-20 grid grid-cols-3 gap-8 max-w-lg mx-auto">
+      <div class="hero-enter hero-delay-5 mt-20 flex justify-center">
         <div>
           <p class="text-3xl md:text-4xl font-bold text-[#1d1d1f] tabular-nums">{{ years.display.value }}</p>
           <p class="text-sm text-[#86868b] mt-1">Años experiencia</p>
-        </div>
-        <div>
-          <p class="text-3xl md:text-4xl font-bold text-[#1d1d1f] tabular-nums">{{ clients.display.value }}</p>
-          <p class="text-sm text-[#86868b] mt-1">Clientes felices</p>
-        </div>
-        <div>
-          <p class="text-3xl md:text-4xl font-bold text-[#1d1d1f] tabular-nums">{{ services.display.value }}</p>
-          <p class="text-sm text-[#86868b] mt-1">Servicios premium</p>
         </div>
       </div>
     </div>
@@ -102,8 +94,6 @@ const props = defineProps<{
 }>()
 
 const years = useCountUp(5, 1500, '+')
-const clients = useCountUp(3000, 2200, '+')
-const services = useCountUp(5, 1200)
 
 function scrollToServices() {
   document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })
@@ -112,8 +102,6 @@ function scrollToServices() {
 onMounted(() => {
   setTimeout(() => {
     years.start()
-    clients.start()
-    services.start()
   }, 1100)
 })
 </script>

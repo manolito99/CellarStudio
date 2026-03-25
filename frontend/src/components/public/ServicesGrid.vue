@@ -30,7 +30,7 @@
             <h3 class="text-xl font-semibold text-[#1d1d1f] mb-2">{{ service.name }}</h3>
             <p class="text-[#86868b] text-sm mb-5 leading-relaxed">{{ service.description }}</p>
             <div class="flex items-center justify-between pt-4 border-t border-[#e8e8ed]">
-              <span class="text-sm text-[#86868b] bg-[#f5f5f7] px-3 py-1 rounded-full">{{ service.duration_minutes >= 120 ? 'Consultar duración' : service.duration_minutes + ' min' }}</span>
+              <span class="text-sm text-[#86868b] bg-[#f5f5f7] px-3 py-1 rounded-full">{{ formatDuration(service.duration_minutes) }}</span>
             </div>
           </div>
         </ion-card>
@@ -46,6 +46,14 @@ import { publicApi, type Service } from '@/services/publicApi'
 
 const services = ref<Service[]>([])
 const loading = ref(true)
+
+function formatDuration(minutes: number): string {
+  if (minutes === 0 || minutes >= 120) return 'Consultar duración'
+  if (minutes % 60 === 0) return `${minutes / 60}h`
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return h > 0 ? `${h}h ${m}min` : `${m} min`
+}
 
 onMounted(async () => {
   try {

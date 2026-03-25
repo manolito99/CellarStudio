@@ -37,7 +37,18 @@
       "Bash(ssh:*)",
       "Bash(gh repo view:*)",
       "Bash(gh run list:*)",
-      "WebFetch(domain:cellarbarberstudio.com)"
+      "WebFetch(domain:cellarbarberstudio.com)",
+      "Read(//mnt/c/**)",
+      "Read(//c/Users/Nolo/**)",
+      "Bash(find /mnt/c/Users -name *.key)",
+      "Bash(python:*)",
+      "Bash(docker-compose exec:*)",
+      "Bash(docker cp:*)",
+      "Bash(docker exec:*)",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec:*)",
+      "Bash(file:*)",
+      "Bash(identify:*)"
     ]
-  }
+  },
+  "hooks": {}
 }
