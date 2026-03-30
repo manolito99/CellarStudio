@@ -107,6 +107,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton } from '@ionic/vue'
 import { publicApi, type Service, type Barber, type TimeSlot } from '@/services/publicApi'
+import { useClientProfile } from '@/composables/useClientProfile'
 import StepServices from '@/components/public/booking/StepServices.vue'
 import StepBarber from '@/components/public/booking/StepBarber.vue'
 import StepDateTime from '@/components/public/booking/StepDateTime.vue'
@@ -115,6 +116,7 @@ import StepConfirm from '@/components/public/booking/StepConfirm.vue'
 
 const router = useRouter()
 const submitting = ref(false)
+const { load: loadProfile, save: saveProfile } = useClientProfile()
 
 const currentStep = ref(1)
 const totalSteps = 5
@@ -134,10 +136,11 @@ const availableSlots = ref<TimeSlot[]>([])
 const selectedSlot = ref<TimeSlot | null>(null)
 const loadingSlots = ref(false)
 
-// Step 4
-const clientName = ref('')
-const clientPhone = ref('')
-const clientEmail = ref('')
+// Step 4 — pre-filled from saved profile if available
+const savedProfile = loadProfile()
+const clientName = ref(savedProfile?.name ?? '')
+const clientPhone = ref(savedProfile?.phone ?? '')
+const clientEmail = ref(savedProfile?.email ?? '')
 
 const filteredBarbers = computed(() => {
   if (!selectedService.value) return barbers.value
@@ -187,6 +190,8 @@ async function confirmBooking() {
       date: selectedDate.value,
       start_time: selectedSlot.value.start_time,
     })
+    // Save profile for future visits
+    saveProfile({ name: clientName.value, phone: clientPhone.value, email: clientEmail.value })
     router.push({
       path: '/confirmation',
       state: {

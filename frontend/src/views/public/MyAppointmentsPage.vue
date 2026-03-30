@@ -361,6 +361,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton } from '@ionic/vue'
 import { publicApi, type Barber, type Service, type TimeSlot } from '@/services/publicApi'
+import { useClientProfile } from '@/composables/useClientProfile'
 
 // ---- Types ----
 interface AppointmentFull {
@@ -374,9 +375,11 @@ interface AppointmentFull {
   client: { id: string; name: string; phone: string; email: string | null }
 }
 
-// ---- Lookup ----
-const lookupPhone = ref('')
-const lookupEmail = ref('')
+// ---- Lookup — pre-filled from saved profile ----
+const { load: loadProfile } = useClientProfile()
+const _savedProfile = loadProfile()
+const lookupPhone = ref(_savedProfile?.phone ?? '')
+const lookupEmail = ref(_savedProfile?.email ?? '')
 const lookupError = ref('')
 const loading = ref(false)
 const appointments = ref<AppointmentFull[] | null>(null)
@@ -543,6 +546,11 @@ onMounted(async () => {
   const [s, b] = await Promise.all([publicApi.getServices(), publicApi.getBarbers()])
   allServices.value = s
   allBarbers.value = b
+
+  // Auto-lookup if we already have phone + email saved
+  if (lookupPhone.value && lookupEmail.value) {
+    lookupAppointments()
+  }
 })
 </script>
 
