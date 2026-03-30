@@ -9,6 +9,15 @@
             <a href="#team" class="nav-link text-sm text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-300">Equipo</a>
             <a href="#gallery" class="nav-link text-sm text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-300">Galería</a>
             <a href="#location" class="nav-link text-sm text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-300">Ubicación</a>
+            <router-link
+              to="/my-appointments"
+              class="text-sm font-medium text-[#1d1d1f] px-4 py-1.5 border border-[#d2d2d7] rounded-full hover:border-[#1d1d1f] transition-all duration-300 flex items-center gap-1.5"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              Mis reservas
+            </router-link>
           </div>
           <div class="flex items-center gap-3">
             <router-link

@@ -91,3 +91,22 @@ class AppointmentListResponse(BaseModel):
     service: AppointmentServiceInfo
 
     model_config = {"from_attributes": True}
+
+
+class MyAppointmentsLookup(BaseModel):
+    phone: str
+    email: str
+
+
+class PublicAppointmentModify(BaseModel):
+    phone: str
+    email: str
+    barber_id: str
+    service_id: str
+    date: dt.date
+    start_time: dt.time
+
+
+class PublicCancelRequest(BaseModel):
+    phone: str
+    email: str

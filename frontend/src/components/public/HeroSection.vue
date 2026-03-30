@@ -51,12 +51,20 @@
         >
           Reserva tu cita
         </router-link>
+        <!-- Desktop: Ver servicios (hidden on mobile) -->
         <button
           @click="scrollToServices"
-          class="btn-secondary px-10 py-4 border border-[#d2d2d7] bg-white/50 backdrop-blur-sm text-[#1d1d1f] text-lg font-semibold rounded-2xl hover:border-[#86868b]"
+          class="btn-secondary hidden sm:block px-10 py-4 border border-[#d2d2d7] bg-white/50 backdrop-blur-sm text-[#1d1d1f] text-lg font-semibold rounded-2xl hover:border-[#86868b]"
         >
           Ver servicios
         </button>
+        <!-- Mobile only: Mis reservas -->
+        <router-link
+          to="/my-appointments"
+          class="btn-secondary sm:hidden px-10 py-4 border border-[#d2d2d7] bg-white/50 backdrop-blur-sm text-[#1d1d1f] text-lg font-semibold rounded-2xl hover:border-[#86868b] text-center"
+        >
+          Mis reservas
+        </router-link>
       </div>
 
       <!-- Next available slot — urgency signal -->

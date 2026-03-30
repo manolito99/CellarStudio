@@ -7,11 +7,22 @@ from sqlalchemy.orm import Session, joinedload
 from app.dependencies import get_db
 from app.models.barber import Barber
 from app.models.service import Service
-from app.schemas.appointment import AppointmentCreate, AppointmentResponse
+from app.schemas.appointment import (
+    AppointmentCreate,
+    AppointmentResponse,
+    MyAppointmentsLookup,
+    PublicAppointmentModify,
+    PublicCancelRequest,
+)
 from app.schemas.barber import BarberResponse
 from app.schemas.schedule import AvailabilityResponse
 from app.schemas.service import ServiceResponse
-from app.services.appointment_service import create_public_appointment
+from app.services.appointment_service import (
+    cancel_my_appointment,
+    create_public_appointment,
+    get_my_appointments,
+    modify_my_appointment,
+)
 from app.services.availability_service import get_availability
 from app.services.email_service import send_appointment_confirmation
 from app.services.whatsapp_service import send_appointment_whatsapp
@@ -117,3 +128,41 @@ async def create_appointment(
     )
 
     return appointment
+
+
+@router.post("/my-appointments/lookup", response_model=list[AppointmentResponse])
+def lookup_my_appointments(
+    data: MyAppointmentsLookup,
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Look up future appointments by phone + email."""
+    return get_my_appointments(db, data.phone, data.email)
+
+
+@router.patch("/my-appointments/{appointment_id}/cancel", response_model=AppointmentResponse)
+def cancel_appointment_public(
+    appointment_id: str,
+    data: PublicCancelRequest,
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Cancel an appointment. Ownership verified via phone + email."""
+    return cancel_my_appointment(db, appointment_id, data.phone, data.email)
+
+
+@router.put("/my-appointments/{appointment_id}/modify", response_model=AppointmentResponse)
+def modify_appointment_public(
+    appointment_id: str,
+    data: PublicAppointmentModify,
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Modify an appointment's date/time/barber/service. Ownership verified via phone + email."""
+    return modify_my_appointment(
+        db,
+        appointment_id,
+        data.phone,
+        data.email,
+        data.barber_id,
+        data.service_id,
+        data.date,
+        data.start_time,
+    )

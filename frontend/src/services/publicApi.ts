@@ -52,6 +52,24 @@ export interface AppointmentCreate {
   notes?: string
 }
 
+export interface MyAppointmentClient {
+  id: string
+  name: string
+  phone: string
+  email: string | null
+}
+
+export interface MyAppointment {
+  id: string
+  date: string
+  start_time: string
+  end_time: string
+  status: string
+  service: Service
+  barber: Barber
+  client: MyAppointmentClient
+}
+
 export const publicApi = {
   getServices(): Promise<Service[]> {
     return api.get('/public/services').then((r) => r.data)
@@ -74,6 +92,33 @@ export const publicApi = {
   getAvailableDates(barberId: string, serviceId: string, from: string, to: string): Promise<AvailableDateInfo[]> {
     return api.get('/public/availability/dates', {
       params: { barber_id: barberId, service_id: serviceId, from, to },
+    }).then((r) => r.data)
+  },
+
+  lookupMyAppointments(phone: string, email: string): Promise<MyAppointment[]> {
+    return api.post('/public/my-appointments/lookup', { phone, email }).then((r) => r.data)
+  },
+
+  cancelMyAppointment(appointmentId: string, phone: string, email: string): Promise<MyAppointment> {
+    return api.patch(`/public/my-appointments/${appointmentId}/cancel`, { phone, email }).then((r) => r.data)
+  },
+
+  modifyMyAppointment(
+    appointmentId: string,
+    phone: string,
+    email: string,
+    serviceId: string,
+    barberId: string,
+    date: string,
+    startTime: string,
+  ): Promise<MyAppointment> {
+    return api.put(`/public/my-appointments/${appointmentId}/modify`, {
+      phone,
+      email,
+      service_id: serviceId,
+      barber_id: barberId,
+      date,
+      start_time: startTime,
     }).then((r) => r.data)
   },
 }
