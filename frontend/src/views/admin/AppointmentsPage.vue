@@ -204,7 +204,16 @@ const selectedAppointment = ref<Appointment | null>(null)
 
 const appointments = ref<Appointment[]>([])
 const loading = ref(false)
-const filters = reactive({ status: '', date_from: '', date_to: '' })
+
+function todayStr(): string {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+const filters = reactive({ status: '', date_from: todayStr(), date_to: '' })
 
 const statusClasses: Record<string, string> = {
   pending: 'bg-yellow-500/10 text-yellow-400',
