@@ -435,5 +435,11 @@ function nextMonth() {
 
 onMounted(async () => {
   barbers.value = await adminApi.getBarbers()
+  // Auto-select Maxi if present
+  const maxi = barbers.value.find(b => b.name.toLowerCase().includes('maxi'))
+  if (maxi) {
+    selectedBarberId.value = maxi.id
+    loadData()
+  }
 })
 </script>
