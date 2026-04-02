@@ -16,7 +16,7 @@ from app.schemas.appointment import (
     AppointmentUpdate,
     StatusUpdate,
 )
-from app.services.email_service import send_appointment_confirmation
+from app.services.email_service import send_appointment_confirmation, send_appointment_modification
 from app.services.whatsapp_service import send_appointment_whatsapp, send_status_change_whatsapp
 
 router = APIRouter(prefix="/api/admin/appointments", tags=["Admin - Appointments"])
@@ -133,7 +133,7 @@ def get_appointment(
 
 
 @router.put("/{appointment_id}", response_model=AppointmentResponse)
-def update_appointment(
+async def update_appointment(
     appointment_id: str,
     data: AppointmentUpdate,
     db: Annotated[Session, Depends(get_db)],
@@ -161,6 +161,27 @@ def update_appointment(
 
     db.commit()
     db.refresh(appointment)
+
+    # Send modification email if the client has an email address
+    client = db.query(Client).filter(Client.id == appointment.client_id).first()
+    if client and client.email:
+        service = db.query(Service).filter(Service.id == appointment.service_id).first()
+        barber_name = appointment.barber.name if appointment.barber else ""
+        if service:
+            await send_appointment_modification(
+                client_name=client.name,
+                client_email=client.email,
+                barber_name=barber_name,
+                service_name=service.name,
+                date_str=appointment.date.strftime("%d/%m/%Y"),
+                time_str=appointment.start_time.strftime("%H:%M"),
+                appointment_id=appointment.id,
+                date_obj=appointment.date,
+                start_time_obj=appointment.start_time,
+                end_time_obj=appointment.end_time,
+                duration_minutes=service.duration_minutes,
+            )
+
     return appointment
 
 

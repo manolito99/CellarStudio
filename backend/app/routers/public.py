@@ -24,7 +24,7 @@ from app.services.appointment_service import (
     modify_my_appointment,
 )
 from app.services.availability_service import get_availability
-from app.services.email_service import send_appointment_confirmation
+from app.services.email_service import send_appointment_confirmation, send_appointment_modification
 from app.services.whatsapp_service import send_appointment_whatsapp
 
 router = APIRouter(prefix="/api/public", tags=["Public"])
@@ -150,13 +150,13 @@ def cancel_appointment_public(
 
 
 @router.put("/my-appointments/{appointment_id}/modify", response_model=AppointmentResponse)
-def modify_appointment_public(
+async def modify_appointment_public(
     appointment_id: str,
     data: PublicAppointmentModify,
     db: Annotated[Session, Depends(get_db)],
 ):
     """Modify an appointment's date/time/barber/service. Ownership verified via phone + email."""
-    return modify_my_appointment(
+    appointment = modify_my_appointment(
         db,
         appointment_id,
         data.phone,
@@ -166,3 +166,22 @@ def modify_appointment_public(
         data.date,
         data.start_time,
     )
+
+    # Send modification confirmation email
+    if appointment.client and appointment.client.email and appointment.service:
+        barber_name = appointment.barber.name if appointment.barber else ""
+        await send_appointment_modification(
+            client_name=appointment.client.name,
+            client_email=appointment.client.email,
+            barber_name=barber_name,
+            service_name=appointment.service.name,
+            date_str=appointment.date.strftime("%d/%m/%Y"),
+            time_str=appointment.start_time.strftime("%H:%M"),
+            appointment_id=appointment.id,
+            date_obj=appointment.date,
+            start_time_obj=appointment.start_time,
+            end_time_obj=appointment.end_time,
+            duration_minutes=appointment.service.duration_minutes,
+        )
+
+    return appointment

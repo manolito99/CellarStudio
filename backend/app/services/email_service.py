@@ -108,26 +108,20 @@ def _build_appointment_email_html(
     time_str: str,
     duration_minutes: int,
     is_reminder: bool = False,
+    is_modification: bool = False,
 ) -> str:
-    """
-    Build a professional, email-client-safe HTML body.
-
-    Uses only inline CSS and <table> layout for maximum compatibility with
-    Gmail, Outlook, Apple Mail and mobile clients.
-    """
+    # Banner y texto según tipo
     if is_reminder:
-        banner_text = "RECORDATORIO DE TU CITA"
-        intro = (
-            f"Hola <strong>{client_name}</strong>, te recordamos que tienes una cita mañana:"
-        )
-        reminder_banner = """\
+        banner_text = "RECORDATORIO DE CITA"
+        intro = f"Hola <strong>{client_name}</strong>, te recordamos que tienes una cita ma&#241;ana."
+        extra_block = """\
 <tr>
-  <td style="padding:0 32px 24px 32px;">
+  <td style="background-color:#ffffff;padding:0 40px 28px 40px;">
     <table width="100%" cellpadding="0" cellspacing="0" border="0">
       <tr>
-        <td bgcolor="#FEF3C7" style="background-color:#FEF3C7;border-left:4px solid #A66B4C;padding:14px 18px;border-radius:4px;">
-          <span style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#92400E;">
-            &#9200; Tu cita es ma&#241;ana. &#161;Te esperamos!
+        <td style="border-left:3px solid #000000;background-color:#f7f7f7;padding:14px 16px;">
+          <span style="font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#333333;line-height:1.5;">
+            &#9200;&nbsp; Tu cita es ma&#241;ana. &#161;Te esperamos!
           </span>
         </td>
       </tr>
@@ -135,24 +129,47 @@ def _build_appointment_email_html(
   </td>
 </tr>"""
         ics_note = ""
-    else:
-        banner_text = "&#161;CITA CONFIRMADA!"
-        intro = f"Hola <strong>{client_name}</strong>, tu cita ha sido registrada con &#233;xito:"
-        reminder_banner = ""
+    elif is_modification:
+        banner_text = "CITA MODIFICADA"
+        intro = f"Hola <strong>{client_name}</strong>, los detalles de tu cita han sido actualizados."
+        extra_block = """\
+<tr>
+  <td style="background-color:#ffffff;padding:0 40px 28px 40px;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td style="border-left:3px solid #000000;background-color:#f7f7f7;padding:14px 16px;">
+          <span style="font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#333333;line-height:1.5;">
+            &#9888;&nbsp; Los detalles de tu cita han sido actualizados. Si no solicitaste este cambio, cont&#225;ctanos.
+          </span>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>"""
         ics_note = """\
 <tr>
-  <td style="padding:0 32px 24px 32px;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#595959;">
-    &#128197; Hemos adjuntado un archivo <strong>.ics</strong> para que puedas a&#241;adir esta cita directamente a Google Calendar, Apple Calendar u Outlook.
+  <td style="background-color:#ffffff;padding:0 40px 28px 40px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#888888;font-style:italic;line-height:1.5;">
+    &#128197;&nbsp; Hemos adjuntado un archivo <strong>.ics</strong> actualizado para tu calendario.
+  </td>
+</tr>"""
+    else:
+        banner_text = "CITA CONFIRMADA"
+        intro = f"Hola <strong>{client_name}</strong>, tu cita ha sido registrada con &#233;xito."
+        extra_block = ""
+        ics_note = """\
+<tr>
+  <td style="background-color:#ffffff;padding:0 40px 28px 40px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#888888;font-style:italic;line-height:1.5;">
+    &#128197;&nbsp; Hemos adjuntado un archivo <strong>.ics</strong> para a&#241;adir esta cita a Google Calendar, Apple Calendar u Outlook.
   </td>
 </tr>"""
 
-    duration_label = (
-        f"{duration_minutes} min"
-        if duration_minutes % 60 != 0 or duration_minutes == 0
-        else f"{duration_minutes // 60}h"
-    )
+    # Duración label
     if duration_minutes == 0:
-        duration_label = "Consultar duración"
+        duration_label = "Consultar duraci&#243;n"
+    elif duration_minutes % 60 == 0:
+        duration_label = f"{duration_minutes // 60}h"
+    else:
+        duration_label = f"{duration_minutes} min"
 
     html = f"""\
 <!DOCTYPE html>
@@ -162,47 +179,47 @@ def _build_appointment_email_html(
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Cellar Barber Studio</title>
 </head>
-<body style="margin:0;padding:0;background-color:#e8e6df;">
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#e8e6df;">
+<body style="margin:0;padding:0;background-color:#f2f2f2;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f2f2f2;">
   <tr>
-    <td align="center" style="padding:32px 16px;">
+    <td align="center" style="padding:40px 16px;">
 
-      <!-- Email card -->
+      <!-- Card -->
       <table width="600" cellpadding="0" cellspacing="0" border="0"
-             style="max-width:600px;width:100%;border-radius:8px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.12);">
+             style="max-width:600px;width:100%;background-color:#ffffff;border-radius:4px;
+                    box-shadow:0 2px 16px rgba(0,0,0,0.10);">
 
-        <!-- HEADER — dark background with circular logo -->
+        <!-- HEADER -->
         <tr>
-          <td bgcolor="#0d0d0d" style="background-color:#0d0d0d;padding:32px 40px;text-align:center;">
-            <!--[if mso]>
-            <table cellpadding="0" cellspacing="0" border="0" align="center"><tr><td style="border-radius:50%;background:#ffffff;padding:4px;">
-            <![endif]-->
+          <td bgcolor="#000000"
+              style="background-color:#000000;padding:36px 40px;text-align:center;">
             <img src="{_LOGO_URL}"
-                 width="110" height="110"
+                 width="100" height="100"
                  alt="Cellar Barber Studio"
-                 style="display:block;margin:0 auto;
-                        width:110px;height:110px;
-                        border-radius:50%;
-                        border:3px solid #A66B4C;
-                        object-fit:cover;">
-            <!--[if mso]></td></tr></table><![endif]-->
+                 style="display:block;margin:0 auto;width:100px;height:100px;
+                        border-radius:50%;border:3px solid #ffffff;object-fit:cover;">
           </td>
         </tr>
 
-        <!-- SUB-HEADER — accent color with status label -->
+        <!-- STATUS BAND -->
         <tr>
-          <td bgcolor="#A66B4C" style="background-color:#A66B4C;padding:12px 40px;text-align:center;">
-            <span style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:bold;
-                         letter-spacing:3px;text-transform:uppercase;color:#ffffff;">
+          <td bgcolor="#000000"
+              style="background-color:#000000;padding:14px 40px 16px 40px;text-align:center;
+                     border-top:1px solid #222222;">
+            <span style="font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                         font-size:11px;font-weight:700;letter-spacing:4px;
+                         text-transform:uppercase;color:#ffffff;">
               {banner_text}
             </span>
           </td>
         </tr>
 
-        <!-- BODY — light background -->
+        <!-- GREETING -->
         <tr>
-          <td bgcolor="#F2F0E9" style="background-color:#F2F0E9;padding:32px 40px 8px 40px;">
-            <p style="margin:0 0 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#2B2E2E;line-height:1.6;">
+          <td bgcolor="#ffffff"
+              style="background-color:#ffffff;padding:36px 40px 24px 40px;">
+            <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                      font-size:16px;color:#111111;line-height:1.7;">
               {intro}
             </p>
           </td>
@@ -210,102 +227,146 @@ def _build_appointment_email_html(
 
         <!-- DETAILS TABLE -->
         <tr>
-          <td bgcolor="#F2F0E9" style="background-color:#F2F0E9;padding:0 32px 24px 32px;">
+          <td bgcolor="#ffffff" style="background-color:#ffffff;padding:0 40px 32px 40px;">
             <table width="100%" cellpadding="0" cellspacing="0" border="0"
-                   style="border-radius:6px;overflow:hidden;border:1px solid #e0ddd6;">
+                   style="border-top:1px solid #ebebeb;">
+
               <!-- Servicio -->
               <tr>
-                <td bgcolor="#ffffff" style="background-color:#ffffff;padding:12px 18px;width:120px;
-                    font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:bold;
-                    letter-spacing:1px;text-transform:uppercase;color:#595959;border-bottom:1px solid #f0ede6;">
+                <td style="padding:14px 0;width:130px;border-bottom:1px solid #ebebeb;vertical-align:middle;
+                    font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                    font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#999999;">
                   Servicio
                 </td>
-                <td bgcolor="#ffffff" style="background-color:#ffffff;padding:12px 18px;
-                    font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#2B2E2E;
-                    border-bottom:1px solid #f0ede6;">
+                <td style="padding:14px 0 14px 16px;border-bottom:1px solid #ebebeb;vertical-align:middle;
+                    font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                    font-size:15px;font-weight:500;color:#111111;">
                   {service_name}
                 </td>
               </tr>
+
               <!-- Barbero -->
               <tr>
-                <td bgcolor="#fafaf8" style="background-color:#fafaf8;padding:12px 18px;
-                    font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:bold;
-                    letter-spacing:1px;text-transform:uppercase;color:#595959;border-bottom:1px solid #f0ede6;">
+                <td style="padding:14px 0;border-bottom:1px solid #ebebeb;vertical-align:middle;
+                    font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                    font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#999999;">
                   Barbero
                 </td>
-                <td bgcolor="#fafaf8" style="background-color:#fafaf8;padding:12px 18px;
-                    font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#2B2E2E;
-                    border-bottom:1px solid #f0ede6;">
+                <td style="padding:14px 0 14px 16px;border-bottom:1px solid #ebebeb;vertical-align:middle;
+                    font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                    font-size:15px;font-weight:500;color:#111111;">
                   {barber_name}
                 </td>
               </tr>
+
               <!-- Fecha -->
               <tr>
-                <td bgcolor="#ffffff" style="background-color:#ffffff;padding:12px 18px;
-                    font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:bold;
-                    letter-spacing:1px;text-transform:uppercase;color:#595959;border-bottom:1px solid #f0ede6;">
+                <td style="padding:14px 0;border-bottom:1px solid #ebebeb;vertical-align:middle;
+                    font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                    font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#999999;">
                   Fecha
                 </td>
-                <td bgcolor="#ffffff" style="background-color:#ffffff;padding:12px 18px;
-                    font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#2B2E2E;
-                    border-bottom:1px solid #f0ede6;">
+                <td style="padding:14px 0 14px 16px;border-bottom:1px solid #ebebeb;vertical-align:middle;
+                    font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                    font-size:15px;font-weight:500;color:#111111;">
                   {date_str}
                 </td>
               </tr>
+
               <!-- Hora -->
               <tr>
-                <td bgcolor="#fafaf8" style="background-color:#fafaf8;padding:12px 18px;
-                    font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:bold;
-                    letter-spacing:1px;text-transform:uppercase;color:#595959;border-bottom:1px solid #f0ede6;">
+                <td style="padding:14px 0;border-bottom:1px solid #ebebeb;vertical-align:middle;
+                    font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                    font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#999999;">
                   Hora
                 </td>
-                <td bgcolor="#fafaf8" style="background-color:#fafaf8;padding:12px 18px;
-                    font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#2B2E2E;
-                    border-bottom:1px solid #f0ede6;">
+                <td style="padding:14px 0 14px 16px;border-bottom:1px solid #ebebeb;vertical-align:middle;
+                    font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                    font-size:15px;font-weight:500;color:#111111;">
                   {time_str}
                 </td>
               </tr>
+
               <!-- Duración -->
               <tr>
-                <td bgcolor="#ffffff" style="background-color:#ffffff;padding:12px 18px;
-                    font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:bold;
-                    letter-spacing:1px;text-transform:uppercase;color:#595959;">
+                <td style="padding:14px 0;border-bottom:1px solid #ebebeb;vertical-align:middle;
+                    font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                    font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#999999;">
                   Duraci&#243;n
                 </td>
-                <td bgcolor="#ffffff" style="background-color:#ffffff;padding:12px 18px;
-                    font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#2B2E2E;">
+                <td style="padding:14px 0 14px 16px;border-bottom:1px solid #ebebeb;vertical-align:middle;
+                    font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                    font-size:15px;font-weight:500;color:#111111;">
                   {duration_label}
                 </td>
               </tr>
+
+              <!-- Dirección -->
+              <tr>
+                <td style="padding:14px 0;vertical-align:middle;
+                    font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                    font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#999999;">
+                  Direcci&#243;n
+                </td>
+                <td style="padding:14px 0 14px 16px;vertical-align:middle;
+                    font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                    font-size:15px;font-weight:500;color:#111111;line-height:1.5;">
+                  Cami&#241;o do Xote, 5<br>
+                  <span style="font-size:13px;color:#666666;">Redondela, Pontevedra</span>
+                </td>
+              </tr>
+
             </table>
           </td>
         </tr>
 
-        <!-- REMINDER BANNER (only for reminders) -->
-        {reminder_banner}
+        <!-- MAPS BUTTON -->
+        <tr>
+          <td bgcolor="#ffffff" style="background-color:#ffffff;padding:0 40px 32px 40px;text-align:center;">
+            <a href="https://www.google.com/maps/search/?api=1&query=Cami%C3%B1o+do+Xote+5+Redondela"
+               target="_blank"
+               style="display:inline-block;
+                      font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                      font-size:13px;font-weight:600;letter-spacing:0.5px;
+                      color:#ffffff;background-color:#000000;
+                      text-decoration:none;
+                      padding:12px 28px;
+                      border-radius:2px;">
+              &#128205;&nbsp; Ver en Google Maps
+            </a>
+          </td>
+        </tr>
 
-        <!-- ICS NOTE (only for confirmations) -->
+        <!-- EXTRA BLOCK (reminder notice / modification notice) -->
+        {extra_block}
+
+        <!-- ICS NOTE -->
         {ics_note}
 
         <!-- CANCEL NOTE -->
         <tr>
-          <td bgcolor="#F2F0E9" style="background-color:#F2F0E9;padding:0 32px 32px 32px;
-              font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#595959;line-height:1.6;">
+          <td bgcolor="#ffffff"
+              style="background-color:#ffffff;padding:0 40px 36px 40px;
+                     font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                     font-size:13px;color:#888888;line-height:1.6;">
             Para cancelar o modificar tu cita, cont&#225;ctanos por WhatsApp.
           </td>
         </tr>
 
         <!-- FOOTER -->
         <tr>
-          <td bgcolor="#0d0d0d" style="background-color:#0d0d0d;padding:20px 40px;">
+          <td bgcolor="#000000"
+              style="background-color:#000000;padding:20px 40px;border-radius:0 0 4px 4px;">
             <table width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#888888;">
+                <td style="font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                           font-size:12px;color:#999999;">
                   Cellar Barber Studio
                 </td>
-                <td align="right" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;">
+                <td align="right">
                   <a href="https://cellarbarberstudio.com"
-                     style="color:#A66B4C;text-decoration:none;">
+                     style="font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                            font-size:12px;color:#ffffff;text-decoration:none;">
                     cellarbarberstudio.com
                   </a>
                 </td>
@@ -315,7 +376,7 @@ def _build_appointment_email_html(
         </tr>
 
       </table>
-      <!-- /Email card -->
+      <!-- /Card -->
 
     </td>
   </tr>
@@ -456,6 +517,7 @@ async def send_appointment_reminder(
         time_str=time_str,
         duration_minutes=duration_minutes,
         is_reminder=True,
+        is_modification=False,
     )
     ics = _build_ics_content(
         appointment_id=appointment_id,
@@ -473,4 +535,50 @@ async def send_appointment_reminder(
         html_body=html,
         ics_content=ics,
         ics_filename="cita.ics",
+    )
+
+
+async def send_appointment_modification(
+    client_name: str,
+    client_email: str,
+    barber_name: str,
+    service_name: str,
+    date_str: str,
+    time_str: str,
+    appointment_id: str,
+    date_obj: datetime.date,
+    start_time_obj: datetime.time,
+    end_time_obj: datetime.time,
+    duration_minutes: int,
+) -> None:
+    """Send a modification email when an appointment is rescheduled or updated."""
+    if not client_email:
+        return
+
+    html = _build_appointment_email_html(
+        client_name=client_name,
+        barber_name=barber_name,
+        service_name=service_name,
+        date_str=date_str,
+        time_str=time_str,
+        duration_minutes=duration_minutes,
+        is_reminder=False,
+        is_modification=True,
+    )
+    ics = _build_ics_content(
+        appointment_id=appointment_id,
+        client_name=client_name,
+        barber_name=barber_name,
+        service_name=service_name,
+        date_obj=date_obj,
+        start_time_obj=start_time_obj,
+        end_time_obj=end_time_obj,
+        duration_minutes=duration_minutes,
+    )
+    await send_email_async(
+        to_email=client_email,
+        subject="Tu cita ha sido modificada \u2013 Cellar Barber Studio",
+        html_body=html,
+        ics_content=ics,
+        ics_filename="cita_actualizada.ics",
     )
