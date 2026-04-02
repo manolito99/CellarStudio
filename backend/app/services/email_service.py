@@ -323,7 +323,7 @@ def _build_appointment_email_html(
         <!-- MAPS BUTTON -->
         <tr>
           <td bgcolor="#ffffff" style="background-color:#ffffff;padding:0 40px 32px 40px;text-align:center;">
-            <a href="https://www.google.com/maps/search/?api=1&query=Cami%C3%B1o+do+Xote+5+Redondela"
+            <a href="https://www.google.com/maps/search/?api=1&amp;query=Cami%C3%B1o+do+Xote+5+Redondela"
                target="_blank"
                style="display:inline-block;
                       font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
