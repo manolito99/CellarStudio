@@ -52,7 +52,6 @@
       <div class="flex flex-wrap gap-2 mb-4">
         <select
           v-model="filters.status"
-          @change="loadAppointments"
           class="flex-1 min-w-[120px] px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-[#1d1d1f] focus:border-brand-400 focus:outline-none"
         >
           <option value="">Todos</option>
@@ -65,13 +64,11 @@
         <input
           v-model="filters.date_from"
           type="date"
-          @change="loadAppointments"
           class="flex-1 min-w-[130px] px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-[#1d1d1f] focus:border-brand-400 focus:outline-none"
         />
         <input
           v-model="filters.date_to"
           type="date"
-          @change="loadAppointments"
           class="flex-1 min-w-[130px] px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-[#1d1d1f] focus:border-brand-400 focus:outline-none"
         />
       </div>
@@ -195,6 +192,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref, watch } from 'vue'
+
 import { adminApi, type Appointment } from '@/services/adminApi'
 import { downloadICS, downloadSingleICS } from '@/utils/icsExport'
 import CalendarGrid from '@/components/admin/CalendarGrid.vue'
@@ -240,6 +238,9 @@ async function loadAppointments() {
     if (filters.date_from) params.date_from = filters.date_from
     if (filters.date_to) params.date_to = filters.date_to
     appointments.value = await adminApi.getAppointments(params)
+  } catch (err) {
+    console.error('[AppointmentsPage] loadAppointments error:', err)
+    appointments.value = []
   } finally {
     loading.value = false
   }
@@ -286,7 +287,19 @@ function exportAll() {
   downloadICS(appointments.value)
 }
 
+onMounted(() => {
+  if (viewMode.value === 'list') loadAppointments()
+})
+
 watch(viewMode, (mode) => {
   if (mode === 'list') loadAppointments()
 })
+
+// Recargar lista automáticamente cuando cambian los filtros
+watch(
+  () => [filters.status, filters.date_from, filters.date_to],
+  () => {
+    if (viewMode.value === 'list') loadAppointments()
+  }
+)
 </script>

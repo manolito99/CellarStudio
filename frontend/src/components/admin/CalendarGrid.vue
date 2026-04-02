@@ -142,6 +142,13 @@
     </div>
 
     <div v-if="loading" class="p-4 text-center text-dark-500 text-sm">Cargando...</div>
+    <div v-else-if="error" class="p-4 text-center text-sm text-red-500">
+      {{ error }}
+      <button @click="fetchWeekAppointments" class="ml-2 underline hover:text-red-700 transition-colors">Reintentar</button>
+    </div>
+    <div v-else-if="totalAppointments === 0" class="p-4 text-center text-dark-400 text-sm">
+      No hay citas esta semana
+    </div>
   </div>
 </template>
 
@@ -159,7 +166,9 @@ const {
   weekDays,
   weekLabel,
   appointmentsByDay,
+  totalAppointments,
   loading,
+  error,
   goToPrevWeek,
   goToNextWeek,
   goToToday,

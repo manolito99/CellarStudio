@@ -25,6 +25,7 @@ export function useCalendar() {
   const currentWeekStart = ref(getMonday(new Date()))
   const appointments = ref<Appointment[]>([])
   const loading = ref(false)
+  const error = ref<string | null>(null)
 
   const weekDays = computed(() => {
     const days: Date[] = []
@@ -49,13 +50,19 @@ export function useCalendar() {
       map[formatDateKey(day)] = []
     }
     for (const appt of appointments.value) {
-      const key = appt.date
+      // Normalizar: tomar solo los primeros 10 chars "YYYY-MM-DD"
+      // por si el backend devuelve datetime completo en algún edge case
+      const key = appt.date.substring(0, 10)
       if (map[key]) {
         map[key].push(appt)
       }
     }
     return map
   })
+
+  const totalAppointments = computed(() =>
+    Object.values(appointmentsByDay.value).reduce((sum, arr) => sum + arr.length, 0)
+  )
 
   function goToPrevWeek() {
     const d = new Date(currentWeekStart.value)
@@ -78,6 +85,7 @@ export function useCalendar() {
 
   async function fetchWeekAppointments() {
     loading.value = true
+    error.value = null
     try {
       const dateFrom = formatDateKey(weekDays.value[0])
       const dateTo = formatDateKey(weekDays.value[6])
@@ -85,6 +93,10 @@ export function useCalendar() {
         date_from: dateFrom,
         date_to: dateTo,
       })
+    } catch (err) {
+      console.error('[CalendarGrid] fetchWeekAppointments error:', err)
+      error.value = 'No se pudieron cargar las citas. Intenta de nuevo.'
+      appointments.value = []
     } finally {
       loading.value = false
     }
@@ -95,7 +107,7 @@ export function useCalendar() {
     const [eh, em] = appt.end_time.split(':').map(Number)
     const startMinutes = (sh - START_HOUR) * 60 + sm
     const endMinutes = (eh - START_HOUR) * 60 + em
-    const top = (startMinutes / 60) * HOUR_HEIGHT
+    const top = Math.max((startMinutes / 60) * HOUR_HEIGHT, 0)
     const height = Math.max(((endMinutes - startMinutes) / 60) * HOUR_HEIGHT, 20)
     return { top: `${top}px`, height: `${height}px` }
   }
@@ -106,7 +118,9 @@ export function useCalendar() {
     weekLabel,
     appointments,
     appointmentsByDay,
+    totalAppointments,
     loading,
+    error,
     goToPrevWeek,
     goToNextWeek,
     goToToday,
