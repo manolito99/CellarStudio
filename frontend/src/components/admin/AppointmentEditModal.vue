@@ -1,36 +1,25 @@
 <template>
-  <!--
-    Overlay
-    ─ Mobile  (< md): plain fixed fill, panel is a bottom sheet anchored to the bottom
-    ─ Desktop (md+):  flex centering so the panel sits in the middle of the screen
-  -->
+  <!-- Overlay: cubre toda la pantalla, centra el panel con margen en los 4 bordes -->
   <div
-    class="fixed inset-0 z-50 md:flex md:items-center md:justify-center md:p-4"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4"
     @click.self="$emit('close')"
   >
     <!-- Backdrop -->
     <div class="absolute inset-0 bg-black/40" @click="$emit('close')"></div>
 
     <!--
-      Panel
-      Mobile : fixed, anchored to the bottom, full width, rounded top corners
-      Desktop: relative (inside the flex overlay), max-w-md, fully rounded
+      Panel único para todos los dispositivos:
+      - max-h-[90dvh]: dvh se recalcula en tiempo real (excluye barra del browser,
+        teclado virtual, home indicator). Nunca se desborda en ningún dispositivo.
+      - flex flex-col: solo el body scrollea; header y footer siempre visibles.
+      - p-4 del overlay garantiza 16px de margen en los 4 bordes siempre.
     -->
     <div
-      class="
-        relative flex flex-col bg-white shadow-xl w-full
-        fixed inset-x-0 bottom-0 rounded-t-2xl max-h-[85vh]
-        md:static md:rounded-2xl md:max-h-[90vh] md:max-w-md
-      "
+      class="relative flex flex-col bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90dvh]"
       @click.stop
     >
-      <!-- Drag handle — mobile only -->
-      <div class="flex justify-center pt-3 pb-1 flex-shrink-0 md:hidden">
-        <div class="w-10 h-1 rounded-full bg-gray-300"></div>
-      </div>
-
-      <!-- Header — always visible (flex-shrink-0) -->
-      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 flex-shrink-0">
+      <!-- Header — siempre visible -->
+      <div class="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-gray-200">
         <h2 class="text-lg font-bold text-[#1d1d1f]">Editar cita</h2>
         <button @click="$emit('close')" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
           <svg class="w-5 h-5 text-dark-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,9 +28,9 @@
         </button>
       </div>
 
-      <!-- Body — only this section scrolls (flex-1 overflow-y-auto) -->
+      <!-- Body — única zona que scrollea -->
       <div class="flex-1 overflow-y-auto p-4 space-y-4">
-        <!-- Client (read-only) -->
+        <!-- Cliente (solo lectura) -->
         <div>
           <label class="block text-xs text-dark-400 mb-1">Cliente</label>
           <p class="px-3 py-2 bg-[#f5f5f7] rounded-lg text-sm text-[#1d1d1f]">
@@ -49,7 +38,7 @@
           </p>
         </div>
 
-        <!-- Date -->
+        <!-- Fecha -->
         <div>
           <label class="block text-xs text-dark-400 mb-1">Fecha</label>
           <input
@@ -59,7 +48,7 @@
           />
         </div>
 
-        <!-- Time -->
+        <!-- Horario -->
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs text-dark-400 mb-1">Hora inicio</label>
@@ -81,7 +70,7 @@
           </div>
         </div>
 
-        <!-- Service -->
+        <!-- Servicio -->
         <div>
           <label class="block text-xs text-dark-400 mb-1">Servicio</label>
           <select
@@ -92,7 +81,7 @@
           </select>
         </div>
 
-        <!-- Barber -->
+        <!-- Barbero -->
         <div>
           <label class="block text-xs text-dark-400 mb-1">Barbero</label>
           <select
@@ -103,7 +92,7 @@
           </select>
         </div>
 
-        <!-- Status -->
+        <!-- Estado -->
         <div>
           <label class="block text-xs text-dark-400 mb-1">Estado</label>
           <select
@@ -118,7 +107,7 @@
           </select>
         </div>
 
-        <!-- Notes -->
+        <!-- Notas -->
         <div>
           <label class="block text-xs text-dark-400 mb-1">Notas</label>
           <textarea
@@ -130,49 +119,32 @@
         </div>
       </div>
 
-      <!-- Footer — always visible (flex-shrink-0), safe-area for iOS home indicator -->
-      <div
-        class="flex-shrink-0 border-t border-gray-200 px-4 pt-3"
-        :style="{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }"
-      >
-        <!--
-          Mobile: prominent full-width "Eliminar" button above the Cancel/Save row
-          for easy single-thumb tapping (min 44 px touch target, Apple HIG)
-        -->
-        <button
-          @click="handleDelete"
-          class="md:hidden w-full flex items-center justify-center gap-2 min-h-[44px] mb-2 rounded-xl text-sm font-medium text-red-500 bg-red-50 hover:bg-red-100 active:bg-red-200 transition-colors"
-        >
-          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-          </svg>
-          Eliminar cita
-        </button>
-
-        <!-- Cancel / Save (+ desktop inline Delete on the left) -->
-        <div class="flex items-center justify-between pb-1">
-          <!-- Desktop-only delete, left side -->
+      <!-- Footer — siempre visible, botones con área táctil mínima de 44px (Apple HIG) -->
+      <div class="flex-shrink-0 border-t border-gray-200 px-4 py-3">
+        <div class="flex items-center justify-between gap-2">
+          <!-- Eliminar -->
           <button
             @click="handleDelete"
-            class="hidden md:flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+            class="flex items-center gap-1.5 px-3 min-h-[44px] text-sm font-medium text-red-500 hover:bg-red-50 active:bg-red-100 rounded-xl transition-colors"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
             </svg>
             Eliminar
           </button>
 
-          <div class="flex items-center gap-2 ml-auto">
+          <!-- Cancelar + Guardar -->
+          <div class="flex items-center gap-2">
             <button
               @click="$emit('close')"
-              class="px-4 py-2 min-h-[44px] text-sm font-medium text-dark-400 hover:bg-gray-100 rounded-lg transition-colors"
+              class="px-4 min-h-[44px] text-sm font-medium text-dark-400 hover:bg-gray-100 rounded-xl transition-colors"
             >
               Cancelar
             </button>
             <button
               @click="handleSave"
               :disabled="saving"
-              class="px-4 py-2 min-h-[44px] text-sm font-medium text-white bg-brand-500 hover:bg-brand-600 rounded-lg transition-colors disabled:opacity-50"
+              class="px-4 min-h-[44px] text-sm font-medium text-white bg-brand-500 hover:bg-brand-600 active:scale-95 rounded-xl transition-all disabled:opacity-50"
             >
               {{ saving ? 'Guardando...' : 'Guardar' }}
             </button>
