@@ -297,12 +297,19 @@ function formatDateLabel(dateStr: string): string {
 
 // ── Filtered + grouped appointments ──────────────────────────────────────────
 const filteredAppointments = computed(() => {
-  if (!searchQuery.value.trim()) return appointments.value
-  const q = searchQuery.value.toLowerCase().trim()
-  return appointments.value.filter(a =>
-    a.client.name.toLowerCase().includes(q) ||
-    a.client.phone.includes(q)
-  )
+  const base = !searchQuery.value.trim()
+    ? appointments.value
+    : appointments.value.filter(a => {
+        const q = searchQuery.value.toLowerCase().trim()
+        return a.client.name.toLowerCase().includes(q) || a.client.phone.includes(q)
+      })
+
+  // Ordenar de más cercana a más lejana: primero por fecha, luego por hora de inicio
+  return [...base].sort((a, b) => {
+    const dateCompare = a.date.localeCompare(b.date)
+    if (dateCompare !== 0) return dateCompare
+    return a.start_time.localeCompare(b.start_time)
+  })
 })
 
 const groupedAppointments = computed(() => {
