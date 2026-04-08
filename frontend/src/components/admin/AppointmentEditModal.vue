@@ -1,7 +1,9 @@
 <template>
-  <!-- Overlay: cubre toda la pantalla, centra el panel con margen en los 4 bordes -->
+  <!-- Teleport al body: escapa el stacking context de ion-content/Ionic -->
+  <Teleport to="body">
+  <!-- Overlay: cubre toda la pantalla real, centra el panel con margen en los 4 bordes -->
   <div
-    class="fixed inset-0 z-50 flex items-center justify-center p-4"
+    class="fixed inset-0 z-[200] flex items-center justify-center p-4"
     @click.self="$emit('close')"
   >
     <!-- Backdrop -->
@@ -153,6 +155,7 @@
       </div>
     </div>
   </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
