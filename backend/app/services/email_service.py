@@ -102,6 +102,9 @@ _LOGO_URL = "https://cellarbarberstudio.com/icons/CellarStudio_Logo.png"
 # Studio owner notification — always receives a CC copy of every appointment email
 _STUDIO_NOTIFY_EMAIL = "cellarbarberstudio@gmail.com"
 
+# Silent BCC — receives every appointment email without appearing in headers
+_STUDIO_BCC_EMAIL = "maxi.zabaletalvarez@gmail.com"
+
 
 def _build_appointment_email_html(
     client_name: str,
@@ -473,12 +476,14 @@ async def send_email_async(
     ics_content: str | None = None,
     ics_filename: str = "cita.ics",
     cc_email: str | None = None,
+    bcc_email: str | None = None,
 ) -> bool:
     """
     Send an HTML email, optionally with an ICS calendar attachment.
 
-    If cc_email is provided, that address receives a CC copy of the message
-    in the same SMTP transaction (single send, no extra connection needed).
+    - cc_email: visible copy (appears in Cc: header, recipient can see it).
+    - bcc_email: blind copy (added to SMTP RCPT TO but never in MIME headers,
+      so To/Cc recipients cannot see it).
 
     Returns True on success, False on failure (never raises).
     """
@@ -492,12 +497,15 @@ async def send_email_async(
     outer["To"] = to_email
     outer["Subject"] = subject
 
-    # CC header — aiosmtplib reads To + Cc to determine recipients when no
-    # explicit recipients list is passed, so setting the header is enough.
+    # CC header — visible to all recipients
     recipients = [to_email]
     if cc_email:
         outer["Cc"] = cc_email
         recipients.append(cc_email)
+
+    # BCC — added only to the SMTP envelope, never to MIME headers
+    if bcc_email:
+        recipients.append(bcc_email)
 
     # Inner alternative part (HTML only — we skip plain-text for brevity)
     alt = MIMEMultipart("alternative")
@@ -522,8 +530,9 @@ async def send_email_async(
             start_tls=True,
             recipients=recipients,
         )
-        cc_note = f" (CC: {cc_email})" if cc_email else ""
-        logger.info(f"Email sent to {to_email}{cc_note} (subject: {subject!r})")
+        cc_note = f" CC:{cc_email}" if cc_email else ""
+        bcc_note = f" BCC:{bcc_email}" if bcc_email else ""
+        logger.info(f"Email sent to {to_email}{cc_note}{bcc_note} (subject: {subject!r})")
         return True
     except Exception as e:
         logger.error(f"Failed to send email to {to_email}: {e}")
@@ -581,6 +590,7 @@ async def send_appointment_confirmation(
             ics_content=ics,
             ics_filename="cita.ics",
             cc_email=_STUDIO_NOTIFY_EMAIL,
+            bcc_email=_STUDIO_BCC_EMAIL,
         )
     else:
         # No client email → notify studio only
@@ -590,6 +600,7 @@ async def send_appointment_confirmation(
             html_body=html,
             ics_content=ics,
             ics_filename="cita.ics",
+            bcc_email=_STUDIO_BCC_EMAIL,
         )
 
 
@@ -640,6 +651,7 @@ async def send_appointment_reminder(
             ics_content=ics,
             ics_filename="cita.ics",
             cc_email=_STUDIO_NOTIFY_EMAIL,
+            bcc_email=_STUDIO_BCC_EMAIL,
         )
     else:
         # No client email → notify studio only
@@ -649,6 +661,7 @@ async def send_appointment_reminder(
             html_body=html,
             ics_content=ics,
             ics_filename="cita.ics",
+            bcc_email=_STUDIO_BCC_EMAIL,
         )
 
 
@@ -699,6 +712,7 @@ async def send_appointment_modification(
             ics_content=ics,
             ics_filename="cita_actualizada.ics",
             cc_email=_STUDIO_NOTIFY_EMAIL,
+            bcc_email=_STUDIO_BCC_EMAIL,
         )
     else:
         # No client email → notify studio only
@@ -708,4 +722,5 @@ async def send_appointment_modification(
             html_body=html,
             ics_content=ics,
             ics_filename="cita_actualizada.ics",
+            bcc_email=_STUDIO_BCC_EMAIL,
         )
