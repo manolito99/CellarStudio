@@ -340,6 +340,78 @@ def _build_appointment_email_html(
           </td>
         </tr>
 
+        <!-- INDICACIONES DE LLEGADA -->
+        <tr>
+          <td bgcolor="#ffffff" style="background-color:#ffffff;padding:0 40px 32px 40px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="background-color:#f7f7f7;border-radius:12px;padding:20px 24px;">
+              <tr>
+                <td style="padding-bottom:12px;
+                           font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                           font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#999999;">
+                  &#128205;&nbsp; Indicaciones de llegada
+                </td>
+              </tr>
+              <tr>
+                <td style="font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                           font-size:13px;color:#444444;line-height:1;">
+                  <!-- Paso 1 -->
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:10px;">
+                    <tr>
+                      <td width="22" valign="top"
+                          style="font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                                 font-size:11px;font-weight:700;color:#ffffff;background-color:#111111;
+                                 border-radius:50%;width:20px;height:20px;text-align:center;
+                                 line-height:20px;padding:0;">
+                        1
+                      </td>
+                      <td style="padding-left:10px;vertical-align:middle;
+                                 font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                                 font-size:13px;color:#333333;line-height:1.5;">
+                        Aparca <strong>arriba o abajo del Cami&#241;o do Xote</strong>, sin entrar con el coche.
+                      </td>
+                    </tr>
+                  </table>
+                  <!-- Paso 2 -->
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:10px;">
+                    <tr>
+                      <td width="22" valign="top"
+                          style="font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                                 font-size:11px;font-weight:700;color:#ffffff;background-color:#111111;
+                                 border-radius:50%;width:20px;height:20px;text-align:center;
+                                 line-height:20px;padding:0;">
+                        2
+                      </td>
+                      <td style="padding-left:10px;vertical-align:middle;
+                                 font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                                 font-size:13px;color:#333333;line-height:1.5;">
+                        Entra por el <strong>portal</strong> &#8212; est&#225; abierto.
+                      </td>
+                    </tr>
+                  </table>
+                  <!-- Paso 3 -->
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td width="22" valign="top"
+                          style="font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                                 font-size:11px;font-weight:700;color:#ffffff;background-color:#111111;
+                                 border-radius:50%;width:20px;height:20px;text-align:center;
+                                 line-height:20px;padding:0;">
+                        3
+                      </td>
+                      <td style="padding-left:10px;vertical-align:middle;
+                                 font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+                                 font-size:13px;color:#333333;line-height:1.5;">
+                        Baja hacia el <strong>jard&#237;n</strong> &#8212; el local est&#225; a la <strong>izquierda</strong>.
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
         <!-- EXTRA BLOCK (reminder notice / modification notice) -->
         {extra_block}
 

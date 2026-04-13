@@ -60,8 +60,7 @@
               </div>
               Dirección
             </h3>
-            <p class="text-[#1d1d1f]">Camiño do Xote 5, bajo</p>
-            <p class="text-[#86868b] text-sm mt-1">36693 Redondela, Pontevedra</p>
+            <p class="text-[#1d1d1f]">Redondela</p>
           </div>
 
           <div v-reveal="'right'" data-delay="300" class="card-premium bg-white rounded-2xl p-6">
