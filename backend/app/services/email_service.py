@@ -99,6 +99,9 @@ def _build_ics_content(
 # Logo URL hosted on the production server (referenced in email — no base64 needed)
 _LOGO_URL = "https://cellarbarberstudio.com/icons/CellarStudio_Logo.png"
 
+# Studio owner notification — always receives a CC copy of every appointment email
+_STUDIO_NOTIFY_EMAIL = "cellarbarberstudio@gmail.com"
+
 
 def _build_appointment_email_html(
     client_name: str,
@@ -397,9 +400,13 @@ async def send_email_async(
     html_body: str,
     ics_content: str | None = None,
     ics_filename: str = "cita.ics",
+    cc_email: str | None = None,
 ) -> bool:
     """
     Send an HTML email, optionally with an ICS calendar attachment.
+
+    If cc_email is provided, that address receives a CC copy of the message
+    in the same SMTP transaction (single send, no extra connection needed).
 
     Returns True on success, False on failure (never raises).
     """
@@ -412,6 +419,13 @@ async def send_email_async(
     outer["From"] = f"{settings.SMTP_FROM_NAME} <{settings.SMTP_USER}>"
     outer["To"] = to_email
     outer["Subject"] = subject
+
+    # CC header — aiosmtplib reads To + Cc to determine recipients when no
+    # explicit recipients list is passed, so setting the header is enough.
+    recipients = [to_email]
+    if cc_email:
+        outer["Cc"] = cc_email
+        recipients.append(cc_email)
 
     # Inner alternative part (HTML only — we skip plain-text for brevity)
     alt = MIMEMultipart("alternative")
@@ -434,8 +448,10 @@ async def send_email_async(
             username=settings.SMTP_USER,
             password=settings.SMTP_PASSWORD,
             start_tls=True,
+            recipients=recipients,
         )
-        logger.info(f"Email sent to {to_email} (subject: {subject!r})")
+        cc_note = f" (CC: {cc_email})" if cc_email else ""
+        logger.info(f"Email sent to {to_email}{cc_note} (subject: {subject!r})")
         return True
     except Exception as e:
         logger.error(f"Failed to send email to {to_email}: {e}")
@@ -460,10 +476,10 @@ async def send_appointment_confirmation(
     end_time_obj: datetime.time,
     duration_minutes: int,
 ) -> None:
-    """Send a confirmation email with an ICS calendar attachment."""
-    if not client_email:
-        return
+    """Send a confirmation email with an ICS calendar attachment.
 
+    Always notifies the studio. Also sends to the client if they have an email.
+    """
     html = _build_appointment_email_html(
         client_name=client_name,
         barber_name=barber_name,
@@ -483,13 +499,26 @@ async def send_appointment_confirmation(
         end_time_obj=end_time_obj,
         duration_minutes=duration_minutes,
     )
-    await send_email_async(
-        to_email=client_email,
-        subject="Confirmaci\u00f3n de tu cita \u2013 Cellar Barber Studio",
-        html_body=html,
-        ics_content=ics,
-        ics_filename="cita.ics",
-    )
+    subject = "Confirmaci\u00f3n de tu cita \u2013 Cellar Barber Studio"
+    if client_email:
+        # Client has email → send to client, CC studio
+        await send_email_async(
+            to_email=client_email,
+            subject=subject,
+            html_body=html,
+            ics_content=ics,
+            ics_filename="cita.ics",
+            cc_email=_STUDIO_NOTIFY_EMAIL,
+        )
+    else:
+        # No client email → notify studio only
+        await send_email_async(
+            to_email=_STUDIO_NOTIFY_EMAIL,
+            subject=subject,
+            html_body=html,
+            ics_content=ics,
+            ics_filename="cita.ics",
+        )
 
 
 async def send_appointment_reminder(
@@ -505,10 +534,10 @@ async def send_appointment_reminder(
     end_time_obj: datetime.time,
     duration_minutes: int,
 ) -> None:
-    """Send a reminder email 24 h before the appointment."""
-    if not client_email:
-        return
+    """Send a reminder email 24 h before the appointment.
 
+    Always notifies the studio. Also sends to the client if they have an email.
+    """
     html = _build_appointment_email_html(
         client_name=client_name,
         barber_name=barber_name,
@@ -529,13 +558,26 @@ async def send_appointment_reminder(
         end_time_obj=end_time_obj,
         duration_minutes=duration_minutes,
     )
-    await send_email_async(
-        to_email=client_email,
-        subject="Recordatorio: tu cita es ma\u00f1ana \u2013 Cellar Barber Studio",
-        html_body=html,
-        ics_content=ics,
-        ics_filename="cita.ics",
-    )
+    subject = "Recordatorio: tu cita es ma\u00f1ana \u2013 Cellar Barber Studio"
+    if client_email:
+        # Client has email → send to client, CC studio
+        await send_email_async(
+            to_email=client_email,
+            subject=subject,
+            html_body=html,
+            ics_content=ics,
+            ics_filename="cita.ics",
+            cc_email=_STUDIO_NOTIFY_EMAIL,
+        )
+    else:
+        # No client email → notify studio only
+        await send_email_async(
+            to_email=_STUDIO_NOTIFY_EMAIL,
+            subject=subject,
+            html_body=html,
+            ics_content=ics,
+            ics_filename="cita.ics",
+        )
 
 
 async def send_appointment_modification(
@@ -551,10 +593,10 @@ async def send_appointment_modification(
     end_time_obj: datetime.time,
     duration_minutes: int,
 ) -> None:
-    """Send a modification email when an appointment is rescheduled or updated."""
-    if not client_email:
-        return
+    """Send a modification email when an appointment is rescheduled or updated.
 
+    Always notifies the studio. Also sends to the client if they have an email.
+    """
     html = _build_appointment_email_html(
         client_name=client_name,
         barber_name=barber_name,
@@ -575,10 +617,23 @@ async def send_appointment_modification(
         end_time_obj=end_time_obj,
         duration_minutes=duration_minutes,
     )
-    await send_email_async(
-        to_email=client_email,
-        subject="Tu cita ha sido modificada \u2013 Cellar Barber Studio",
-        html_body=html,
-        ics_content=ics,
-        ics_filename="cita_actualizada.ics",
-    )
+    subject = "Tu cita ha sido modificada \u2013 Cellar Barber Studio"
+    if client_email:
+        # Client has email → send to client, CC studio
+        await send_email_async(
+            to_email=client_email,
+            subject=subject,
+            html_body=html,
+            ics_content=ics,
+            ics_filename="cita_actualizada.ics",
+            cc_email=_STUDIO_NOTIFY_EMAIL,
+        )
+    else:
+        # No client email → notify studio only
+        await send_email_async(
+            to_email=_STUDIO_NOTIFY_EMAIL,
+            subject=subject,
+            html_body=html,
+            ics_content=ics,
+            ics_filename="cita_actualizada.ics",
+        )
