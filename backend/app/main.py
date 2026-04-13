@@ -76,13 +76,11 @@ def send_appointment_reminders():
         )
 
         for appt in email_appointments:
-            if not appt.client.email:
-                continue
             try:
                 asyncio.run(
                     send_appointment_reminder(
                         client_name=appt.client.name,
-                        client_email=appt.client.email,
+                        client_email=appt.client.email or "",
                         barber_name=appt.barber.name,
                         service_name=appt.service.name,
                         date_str=appt.date.strftime("%d/%m/%Y"),
