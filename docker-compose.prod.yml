@@ -23,28 +23,24 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - default
+      - proxy-net
 
   nginx:
     build:
       context: .
       dockerfile: nginx/Dockerfile.prod
     restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - certbot_www:/var/www/certbot:ro
-      - certbot_certs:/etc/letsencrypt:ro
     depends_on:
       - backend
-
-  certbot:
-    image: certbot/certbot
-    volumes:
-      - certbot_www:/var/www/certbot
-      - certbot_certs:/etc/letsencrypt
+    networks:
+      - default
+      - proxy-net
 
 volumes:
   postgres_data:
-  certbot_www:
-  certbot_certs:
+
+networks:
+  proxy-net:
+    external: true
