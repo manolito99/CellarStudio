@@ -22,7 +22,9 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.add_column(
         "appointments",
-        sa.Column("reminder_sent", sa.Boolean(), server_default="false", nullable=False),
+        sa.Column(
+            "reminder_sent", sa.Boolean(), server_default="false", nullable=False
+        ),
     )
 
 

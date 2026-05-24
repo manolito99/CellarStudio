@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <ion-page>
     <ion-content :fullscreen="true">
       <div class="min-h-screen bg-white flex items-center justify-center px-4">
@@ -56,6 +56,61 @@
                 Añadir a Google Calendar
               </a>
 
+              <!-- Push notification opt-in -->
+              <button
+                v-if="showPushOption"
+                @click="enablePush"
+                :disabled="pushState !== 'idle'"
+                class="w-full px-6 py-3.5 border border-[#d2d2d7] rounded-2xl flex items-center justify-center gap-2 font-semibold transition-colors"
+                :class="{
+                  'text-[#1d1d1f]': pushState === 'idle',
+                  'text-green-600 border-green-300 bg-green-50': pushState === 'success',
+                  'text-red-500 border-red-300 bg-red-50': pushState === 'error',
+                  'text-[#86868b]': pushState === 'loading',
+                }"
+              >
+                <!-- Bell icon -->
+                <svg v-if="pushState === 'idle'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                </svg>
+                <!-- Check icon -->
+                <svg v-else-if="pushState === 'success'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                <!-- Spinner -->
+                <svg v-else-if="pushState === 'loading'" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <!-- X icon -->
+                <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+                {{ pushLabel }}
+              </button>
+
+              <!-- Test button (only after successful subscription) -->
+              <button
+                v-if="pushState === 'success'"
+                @click="testPush"
+                :disabled="testState === 'loading'"
+                class="w-full px-6 py-3.5 border border-dashed border-[#d2d2d7] rounded-2xl flex items-center justify-center gap-2 font-semibold transition-colors"
+                :class="{
+                  'text-[#86868b]': testState === 'idle' || testState === 'loading',
+                  'text-green-600 border-green-300 bg-green-50': testState === 'sent',
+                  'text-red-500 border-red-300 bg-red-50': testState === 'failed',
+                }"
+              >
+                <svg v-if="testState === 'loading'" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                </svg>
+                {{ testState === 'loading' ? 'Enviando...' : testState === 'sent' ? 'Notificación enviada' : testState === 'failed' ? 'Error al enviar' : 'Probar notificación' }}
+              </button>
+
               <div class="border-t border-[#e8e8ed] my-1"></div>
             </template>
 
@@ -79,12 +134,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { IonPage, IonContent } from '@ionic/vue'
 import { downloadPublicBookingICS, getGoogleCalendarUrl as buildGoogleUrl, type PublicBookingData } from '@/utils/icsExport'
+import { isPushSupported, subscribeToPush } from '@/services/pushNotifications'
+import api from '@/services/api'
 
 // Data passed via router state from BookingPage
-const booking = computed<PublicBookingData | null>(() => {
+const booking = computed<(PublicBookingData & { clientPhone?: string }) | null>(() => {
   const s = history.state
   if (!s?.serviceName || !s?.date || !s?.startTime || !s?.endTime) return null
   return {
@@ -93,6 +150,7 @@ const booking = computed<PublicBookingData | null>(() => {
     date:        s.date,
     startTime:   s.startTime,
     endTime:     s.endTime,
+    clientPhone: s.clientPhone,
   }
 })
 
@@ -102,6 +160,42 @@ const googleCalendarUrl = computed(() =>
 
 function downloadICS() {
   if (booking.value) downloadPublicBookingICS(booking.value)
+}
+
+// Push notifications
+const showPushOption = computed(() => isPushSupported() && !!booking.value?.clientPhone)
+const pushState = ref<'idle' | 'loading' | 'success' | 'error'>('idle')
+
+const pushLabel = computed(() => {
+  switch (pushState.value) {
+    case 'idle': return 'Activar recordatorios'
+    case 'loading': return 'Activando...'
+    case 'success': return 'Recordatorios activados'
+    case 'error': return 'No se pudo activar'
+  }
+})
+
+async function enablePush() {
+  if (!booking.value?.clientPhone) return
+  pushState.value = 'loading'
+  const ok = await subscribeToPush(booking.value.clientPhone)
+  pushState.value = ok ? 'success' : 'error'
+}
+
+// Test push notification
+const testState = ref<'idle' | 'loading' | 'sent' | 'failed'>('idle')
+
+async function testPush() {
+  if (!booking.value?.clientPhone) return
+  testState.value = 'loading'
+  try {
+    const { data } = await api.post('/public/push/test', {
+      client_phone: booking.value.clientPhone,
+    })
+    testState.value = data.ok ? 'sent' : 'failed'
+  } catch {
+    testState.value = 'failed'
+  }
 }
 </script>
 

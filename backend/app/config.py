@@ -1,9 +1,11 @@
-﻿from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     # Database
-    DATABASE_URL: str = "postgresql://cellarstudio:cellarstudio_secret@db:5432/cellarstudio_db"
+    DATABASE_URL: str = (
+        "postgresql://cellarstudio:cellarstudio_secret@db:5432/cellarstudio_db"
+    )
 
     # Security
     SECRET_KEY: str = "super-secret-key-change-in-production"
@@ -23,6 +25,11 @@ class Settings(BaseSettings):
     WHATSAPP_PHONE_NUMBER_ID: str = ""
     WHATSAPP_ACCESS_TOKEN: str = ""
     WHATSAPP_REMINDER_HOURS: int = 2
+
+    # Web Push (VAPID)
+    VAPID_PUBLIC_KEY: str = ""
+    VAPID_PRIVATE_KEY: str = ""
+    VAPID_CLAIMS_EMAIL: str = "admin@cellarstudio.com"
 
     # CORS
     CORS_ORIGINS: str = "http://localhost,http://localhost:5173,http://localhost:80"

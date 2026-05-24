@@ -68,7 +68,12 @@ def get_dashboard_stats(
     # New clients this month
     new_clients_month = (
         db.query(func.count(Client.id))
-        .filter(Client.created_at >= datetime.combine(month_start, datetime.min.time()).replace(tzinfo=timezone.utc))
+        .filter(
+            Client.created_at
+            >= datetime.combine(month_start, datetime.min.time()).replace(
+                tzinfo=timezone.utc
+            )
+        )
         .scalar()
     )
 

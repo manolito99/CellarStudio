@@ -34,3 +34,7 @@ app.directive('reveal', vReveal)
 router.isReady().then(() => {
   app.mount('#app')
 })
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {})
+}

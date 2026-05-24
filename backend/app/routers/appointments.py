@@ -16,8 +16,14 @@ from app.schemas.appointment import (
     AppointmentUpdate,
     StatusUpdate,
 )
-from app.services.email_service import send_appointment_confirmation, send_appointment_modification
-from app.services.whatsapp_service import send_appointment_whatsapp, send_status_change_whatsapp
+from app.services.email_service import (
+    send_appointment_confirmation,
+    send_appointment_modification,
+)
+from app.services.whatsapp_service import (
+    send_appointment_whatsapp,
+    send_status_change_whatsapp,
+)
 
 router = APIRouter(prefix="/api/admin/appointments", tags=["Admin - Appointments"])
 
@@ -58,7 +64,9 @@ def list_appointments(
     return query.order_by(Appointment.date.desc(), Appointment.start_time).all()
 
 
-@router.post("/", response_model=AppointmentResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/", response_model=AppointmentResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_appointment(
     data: AppointmentAdminCreate,
     db: Annotated[Session, Depends(get_db)],
@@ -72,7 +80,9 @@ async def create_appointment(
     if not client:
         raise HTTPException(status_code=404, detail="Cliente no encontrado")
 
-    end_dt = datetime.combine(data.date, data.start_time) + timedelta(minutes=service.duration_minutes)
+    end_dt = datetime.combine(data.date, data.start_time) + timedelta(
+        minutes=service.duration_minutes
+    )
 
     appointment = Appointment(
         client_id=data.client_id,
@@ -126,7 +136,9 @@ def get_appointment(
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[User, Depends(get_current_user)],
 ):
-    appointment = _get_appointment_query(db).filter(Appointment.id == appointment_id).first()
+    appointment = (
+        _get_appointment_query(db).filter(Appointment.id == appointment_id).first()
+    )
     if not appointment:
         raise HTTPException(status_code=404, detail="Cita no encontrada")
     return appointment
@@ -154,7 +166,9 @@ async def update_appointment(
         update_data["end_time"] = end_dt.time()
 
     if "status" in update_data and update_data["status"] not in VALID_STATUSES:
-        raise HTTPException(status_code=400, detail=f"Estado inválido. Válidos: {VALID_STATUSES}")
+        raise HTTPException(
+            status_code=400, detail=f"Estado inválido. Válidos: {VALID_STATUSES}"
+        )
 
     for key, value in update_data.items():
         setattr(appointment, key, value)
@@ -206,9 +220,13 @@ def update_appointment_status(
     _: Annotated[User, Depends(get_current_user)],
 ):
     if data.status not in VALID_STATUSES:
-        raise HTTPException(status_code=400, detail=f"Estado inválido. Válidos: {VALID_STATUSES}")
+        raise HTTPException(
+            status_code=400, detail=f"Estado inválido. Válidos: {VALID_STATUSES}"
+        )
 
-    appointment = _get_appointment_query(db).filter(Appointment.id == appointment_id).first()
+    appointment = (
+        _get_appointment_query(db).filter(Appointment.id == appointment_id).first()
+    )
     if not appointment:
         raise HTTPException(status_code=404, detail="Cita no encontrada")
 

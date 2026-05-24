@@ -4,8 +4,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session, joinedload
 
+from app.config import settings
 from app.dependencies import get_db
 from app.models.barber import Barber
+from app.models.notification import Notification
+from app.models.push_subscription import PushSubscription
 from app.models.service import Service
 from app.schemas.appointment import (
     AppointmentCreate,
@@ -15,6 +18,12 @@ from app.schemas.appointment import (
     PublicCancelRequest,
 )
 from app.schemas.barber import BarberResponse
+from app.schemas.push import (
+    NotificationResponse,
+    PhoneLookup,
+    PushSubscribeRequest,
+    PushTestRequest,
+)
 from app.schemas.schedule import AvailabilityResponse
 from app.schemas.service import ServiceResponse
 from app.services.appointment_service import (
@@ -24,7 +33,10 @@ from app.services.appointment_service import (
     modify_my_appointment,
 )
 from app.services.availability_service import get_availability
-from app.services.email_service import send_appointment_confirmation, send_appointment_modification
+from app.services.email_service import (
+    send_appointment_confirmation,
+    send_appointment_modification,
+)
 from app.services.whatsapp_service import send_appointment_whatsapp
 
 router = APIRouter(prefix="/api/public", tags=["Public"])
@@ -80,11 +92,13 @@ def get_available_dates_range(
         availability = get_availability(db, barber_id, current, service_id)
         available_slots = [s for s in availability.slots if s.available]
         if available_slots:
-            results.append({
-                "date": current.isoformat(),
-                "first_slot": str(available_slots[0].start_time)[:5],
-                "slots_count": len(available_slots),
-            })
+            results.append(
+                {
+                    "date": current.isoformat(),
+                    "first_slot": str(available_slots[0].start_time)[:5],
+                    "slots_count": len(available_slots),
+                }
+            )
         current += timedelta(days=1)
 
     return results
@@ -117,6 +131,20 @@ async def create_appointment(
         duration_minutes=appointment.service.duration_minutes,
     )
 
+    # Save notification for the client
+    db.add(
+        Notification(
+            client_phone=appointment.client.phone or "",
+            title="Reserva confirmada",
+            body=(
+                f"{appointment.service.name} el {date_str} a las {time_str}h "
+                f"con {appointment.barber.name}"
+            ),
+            icon="booking",
+        )
+    )
+    db.commit()
+
     # Send WhatsApp confirmation
     send_appointment_whatsapp(
         client_phone=appointment.client.phone or "",
@@ -139,7 +167,9 @@ def lookup_my_appointments(
     return get_my_appointments(db, data.phone, data.email)
 
 
-@router.patch("/my-appointments/{appointment_id}/cancel", response_model=AppointmentResponse)
+@router.patch(
+    "/my-appointments/{appointment_id}/cancel", response_model=AppointmentResponse
+)
 def cancel_appointment_public(
     appointment_id: str,
     data: PublicCancelRequest,
@@ -149,7 +179,9 @@ def cancel_appointment_public(
     return cancel_my_appointment(db, appointment_id, data.phone, data.email)
 
 
-@router.put("/my-appointments/{appointment_id}/modify", response_model=AppointmentResponse)
+@router.put(
+    "/my-appointments/{appointment_id}/modify", response_model=AppointmentResponse
+)
 async def modify_appointment_public(
     appointment_id: str,
     data: PublicAppointmentModify,
@@ -185,3 +217,125 @@ async def modify_appointment_public(
         )
 
     return appointment
+
+
+@router.get("/push/vapid-key")
+def get_vapid_public_key():
+    return {"public_key": settings.VAPID_PUBLIC_KEY}
+
+
+@router.post("/push/subscribe")
+def subscribe_push(
+    data: PushSubscribeRequest,
+    db: Annotated[Session, Depends(get_db)],
+):
+    existing = (
+        db.query(PushSubscription)
+        .filter(PushSubscription.endpoint == data.endpoint)
+        .first()
+    )
+    if existing:
+        existing.p256dh_key = data.p256dh_key
+        existing.auth_key = data.auth_key
+        existing.client_phone = data.client_phone
+    else:
+        db.add(
+            PushSubscription(
+                endpoint=data.endpoint,
+                p256dh_key=data.p256dh_key,
+                auth_key=data.auth_key,
+                client_phone=data.client_phone,
+            )
+        )
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/push/test")
+def test_push(
+    data: PushTestRequest,
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Send a test push notification to verify the setup works."""
+    from app.services.push_service import send_push_notification
+
+    subscriptions = (
+        db.query(PushSubscription)
+        .filter(PushSubscription.client_phone == data.client_phone)
+        .all()
+    )
+    if not subscriptions:
+        return {"ok": False, "detail": "No subscriptions found"}
+
+    sent = 0
+    for sub in subscriptions:
+        result = send_push_notification(
+            subscription_info={
+                "endpoint": sub.endpoint,
+                "keys": {"p256dh": sub.p256dh_key, "auth": sub.auth_key},
+            },
+            title="Cellar Barber Studio",
+            body="Recordatorio: Tu cita de Corte es hoy a las 16:00h con Maxi",
+        )
+        if result is True:
+            sent += 1
+        elif result is None:
+            db.delete(sub)
+
+    db.commit()
+    return {"ok": sent > 0, "sent": sent}
+
+
+@router.post("/notifications", response_model=list[NotificationResponse])
+def list_notifications(
+    data: PhoneLookup,
+    db: Annotated[Session, Depends(get_db)],
+):
+    return (
+        db.query(Notification)
+        .filter(Notification.client_phone == data.phone)
+        .order_by(Notification.created_at.desc())
+        .limit(50)
+        .all()
+    )
+
+
+@router.patch("/notifications/{notification_id}/read")
+def mark_notification_read(
+    notification_id: str,
+    db: Annotated[Session, Depends(get_db)],
+):
+    notif = db.query(Notification).filter(Notification.id == notification_id).first()
+    if notif:
+        notif.read = True
+        db.commit()
+    return {"ok": True}
+
+
+@router.patch("/notifications/read-all")
+def mark_all_read(
+    data: PhoneLookup,
+    db: Annotated[Session, Depends(get_db)],
+):
+    db.query(Notification).filter(
+        Notification.client_phone == data.phone,
+        Notification.read.is_(False),
+    ).update({"read": True})
+    db.commit()
+    return {"ok": True}
+
+
+@router.get("/notifications/unread-count")
+def unread_count(
+    phone: Annotated[str, Query()],
+    db: Annotated[Session, Depends(get_db)],
+):
+    count = (
+        db.query(Notification)
+        .filter(
+            Notification.client_phone == phone,
+            Notification.read.is_(False),
+        )
+        .count()
+    )
+    return {"count": count}

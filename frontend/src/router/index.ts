@@ -28,6 +28,11 @@ const routes: RouteRecordRaw[] = [
         name: 'my-appointments',
         component: () => import('@/views/public/MyAppointmentsPage.vue'),
       },
+      {
+        path: 'notificaciones',
+        name: 'push-test',
+        component: () => import('@/views/public/PushTestPage.vue'),
+      },
     ],
   },
   // Auth

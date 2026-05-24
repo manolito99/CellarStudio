@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 
@@ -12,13 +12,16 @@ logger = logging.getLogger(__name__)
 
 
 def send_appointment_reminders():
-    """Check for upcoming appointments and send WhatsApp + email reminders."""
+    """Check for upcoming appointments and send WhatsApp + email + push reminders."""
     import asyncio
 
     from app.database import SessionLocal
     from app.models.appointment import Appointment
-    from app.services.whatsapp_service import send_reminder_whatsapp
+    from app.models.notification import Notification
+    from app.models.push_subscription import PushSubscription
     from app.services.email_service import send_appointment_reminder
+    from app.services.push_service import send_push_notification
+    from app.services.whatsapp_service import send_reminder_whatsapp
 
     now = datetime.now(timezone.utc)
 
@@ -96,7 +99,70 @@ def send_appointment_reminders():
                 logger.info(f"Email reminder sent for appointment {appt.id}")
             except Exception as e:
                 logger.error(f"Email reminder failed for appointment {appt.id}: {e}")
-                # Isolated failure — continue with remaining appointments
+
+        # ------------------------------------------------------------------
+        # Pass 3 — Push notification reminder (4h before)
+        # ------------------------------------------------------------------
+        push_target_time = now + timedelta(hours=4)
+
+        push_appointments = (
+            db.query(Appointment)
+            .filter(
+                Appointment.status.in_(["pending", "confirmed"]),
+                Appointment.push_reminder_sent.is_(False),
+                Appointment.date == push_target_time.date(),
+            )
+            .all()
+        )
+
+        for appt in push_appointments:
+            appt_datetime = datetime.combine(
+                appt.date, appt.start_time, tzinfo=timezone.utc
+            )
+            diff = abs((appt_datetime - push_target_time).total_seconds())
+            if diff <= 900:
+                phone = (appt.client.phone or "").strip()
+                subscriptions = (
+                    db.query(PushSubscription)
+                    .filter(PushSubscription.client_phone == phone)
+                    .all()
+                )
+                if not subscriptions:
+                    appt.push_reminder_sent = True
+                    continue
+
+                for sub in subscriptions:
+                    result = send_push_notification(
+                        subscription_info={
+                            "endpoint": sub.endpoint,
+                            "keys": {
+                                "p256dh": sub.p256dh_key,
+                                "auth": sub.auth_key,
+                            },
+                        },
+                        title="Cellar Barber Studio",
+                        body=(
+                            f"Recordatorio: Tu cita de {appt.service.name} "
+                            f"es hoy a las {appt.start_time.strftime('%H:%M')}h "
+                            f"con {appt.barber.name}"
+                        ),
+                    )
+                    if result is None:
+                        db.delete(sub)
+
+                db.add(
+                    Notification(
+                        client_phone=phone,
+                        title="Recordatorio de cita",
+                        body=(
+                            f"Tu cita de {appt.service.name} es hoy a las "
+                            f"{appt.start_time.strftime('%H:%M')}h con {appt.barber.name}"
+                        ),
+                        icon="reminder",
+                    )
+                )
+                appt.push_reminder_sent = True
+                logger.info(f"Push reminder sent for appointment {appt.id}")
 
         db.commit()
     except Exception as e:
@@ -115,6 +181,8 @@ async def lifespan(app: FastAPI):
         Barber,
         BlockedSlot,
         Client,
+        Notification,
+        PushSubscription,
         Schedule,
         Service,
         User,

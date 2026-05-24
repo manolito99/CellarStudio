@@ -6,6 +6,8 @@ from app.models.schedule import Schedule
 from app.models.blocked_slot import BlockedSlot
 from app.models.appointment import Appointment
 from app.models.available_day import AvailableDay
+from app.models.push_subscription import PushSubscription
+from app.models.notification import Notification
 
 __all__ = [
     "User",
@@ -17,4 +19,6 @@ __all__ = [
     "BlockedSlot",
     "Appointment",
     "AvailableDay",
+    "PushSubscription",
+    "Notification",
 ]

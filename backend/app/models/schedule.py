@@ -15,7 +15,9 @@ class Schedule(Base):
     barber_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("barbers.id", ondelete="CASCADE"), nullable=False
     )
-    day_of_week: Mapped[int] = mapped_column(Integer, nullable=False)  # 0=Monday, 6=Sunday
+    day_of_week: Mapped[int] = mapped_column(
+        Integer, nullable=False
+    )  # 0=Monday, 6=Sunday
     start_time: Mapped[str] = mapped_column(Time, nullable=False)
     end_time: Mapped[str] = mapped_column(Time, nullable=False)
 

@@ -15,14 +15,26 @@ from app.services.availability_service import get_availability
 
 def create_public_appointment(db: Session, data: AppointmentCreate) -> Appointment:
     # Validate barber exists and is active
-    barber = db.query(Barber).filter(Barber.id == data.barber_id, Barber.is_active.is_(True)).first()
+    barber = (
+        db.query(Barber)
+        .filter(Barber.id == data.barber_id, Barber.is_active.is_(True))
+        .first()
+    )
     if not barber:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Barbero no encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Barbero no encontrado"
+        )
 
     # Validate service exists and is active
-    service = db.query(Service).filter(Service.id == data.service_id, Service.is_active.is_(True)).first()
+    service = (
+        db.query(Service)
+        .filter(Service.id == data.service_id, Service.is_active.is_(True))
+        .first()
+    )
     if not service:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Servicio no encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Servicio no encontrado"
+        )
 
     # Check availability
     availability = get_availability(db, data.barber_id, data.date, data.service_id)
@@ -52,7 +64,9 @@ def create_public_appointment(db: Session, data: AppointmentCreate) -> Appointme
             client.email = data.client_email
 
     # Calculate end time
-    end_dt = datetime.combine(data.date, data.start_time) + timedelta(minutes=service.duration_minutes)
+    end_dt = datetime.combine(data.date, data.start_time) + timedelta(
+        minutes=service.duration_minutes
+    )
 
     appointment = Appointment(
         client_id=client.id,
@@ -108,21 +122,25 @@ def get_my_appointments(db: Session, phone: str, email: str) -> list[Appointment
     return appointments
 
 
-def cancel_my_appointment(db: Session, appointment_id: str, phone: str, email: str) -> Appointment:
+def cancel_my_appointment(
+    db: Session, appointment_id: str, phone: str, email: str
+) -> Appointment:
     """Cancel an appointment after verifying ownership via phone + email."""
     from sqlalchemy.orm import joinedload as jl
 
     client = (
-        db.query(Client)
-        .filter(Client.phone == phone, Client.email == email)
-        .first()
+        db.query(Client).filter(Client.phone == phone, Client.email == email).first()
     )
     if not client:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente no encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Cliente no encontrado"
+        )
 
     appointment = (
         db.query(Appointment)
-        .options(jl(Appointment.client), jl(Appointment.barber), jl(Appointment.service))
+        .options(
+            jl(Appointment.client), jl(Appointment.barber), jl(Appointment.service)
+        )
         .filter(
             Appointment.id == appointment_id,
             Appointment.client_id == client.id,
@@ -130,9 +148,13 @@ def cancel_my_appointment(db: Session, appointment_id: str, phone: str, email: s
         .first()
     )
     if not appointment:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cita no encontrada")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Cita no encontrada"
+        )
     if appointment.status == "cancelled":
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="La cita ya está cancelada")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="La cita ya está cancelada"
+        )
 
     appointment.status = "cancelled"
     db.commit()
@@ -154,16 +176,18 @@ def modify_my_appointment(
     from sqlalchemy.orm import joinedload as jl
 
     client = (
-        db.query(Client)
-        .filter(Client.phone == phone, Client.email == email)
-        .first()
+        db.query(Client).filter(Client.phone == phone, Client.email == email).first()
     )
     if not client:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente no encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Cliente no encontrado"
+        )
 
     appointment = (
         db.query(Appointment)
-        .options(jl(Appointment.client), jl(Appointment.barber), jl(Appointment.service))
+        .options(
+            jl(Appointment.client), jl(Appointment.barber), jl(Appointment.service)
+        )
         .filter(
             Appointment.id == appointment_id,
             Appointment.client_id == client.id,
@@ -171,18 +195,35 @@ def modify_my_appointment(
         .first()
     )
     if not appointment:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cita no encontrada")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Cita no encontrada"
+        )
     if appointment.status == "cancelled":
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No se puede modificar una cita cancelada")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No se puede modificar una cita cancelada",
+        )
 
     # Validate barber and service exist
-    barber = db.query(Barber).filter(Barber.id == barber_id, Barber.is_active.is_(True)).first()
+    barber = (
+        db.query(Barber)
+        .filter(Barber.id == barber_id, Barber.is_active.is_(True))
+        .first()
+    )
     if not barber:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Barbero no encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Barbero no encontrado"
+        )
 
-    service = db.query(Service).filter(Service.id == service_id, Service.is_active.is_(True)).first()
+    service = (
+        db.query(Service)
+        .filter(Service.id == service_id, Service.is_active.is_(True))
+        .first()
+    )
     if not service:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Servicio no encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Servicio no encontrado"
+        )
 
     # Temporarily mark current appointment as cancelled for availability check
     original_status = appointment.status
@@ -204,7 +245,9 @@ def modify_my_appointment(
         )
 
     # Calculate new end time
-    end_dt = datetime.combine(new_date, new_start_time) + timedelta(minutes=service.duration_minutes)
+    end_dt = datetime.combine(new_date, new_start_time) + timedelta(
+        minutes=service.duration_minutes
+    )
 
     appointment.barber_id = barber_id
     appointment.service_id = service_id

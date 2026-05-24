@@ -1,4 +1,4 @@
-﻿"""WhatsApp service for sending appointment notifications via Meta Cloud API."""
+"""WhatsApp service for sending appointment notifications via Meta Cloud API."""
 
 import logging
 import re
@@ -65,7 +65,9 @@ def _send_whatsapp(to_phone: str, message: str) -> bool:
 
 def _send_in_background(to_phone: str, message: str) -> None:
     """Fire-and-forget: run _send_whatsapp in a daemon thread."""
-    thread = threading.Thread(target=_send_whatsapp, args=(to_phone, message), daemon=True)
+    thread = threading.Thread(
+        target=_send_whatsapp, args=(to_phone, message), daemon=True
+    )
     thread.start()
 
 

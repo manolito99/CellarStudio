@@ -24,5 +24,7 @@ class Service(Base):
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
-    barbers = relationship("Barber", secondary="barber_services", back_populates="services")
+    barbers = relationship(
+        "Barber", secondary="barber_services", back_populates="services"
+    )
     appointments = relationship("Appointment", back_populates="service")

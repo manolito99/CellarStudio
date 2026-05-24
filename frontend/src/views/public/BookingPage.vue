@@ -200,6 +200,7 @@ async function confirmBooking() {
         date:        selectedDate.value,
         startTime:   selectedSlot.value.start_time,
         endTime:     selectedSlot.value.end_time,
+        clientPhone: clientPhone.value,
       },
     })
   } catch {

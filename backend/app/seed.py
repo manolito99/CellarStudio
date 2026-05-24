@@ -1,4 +1,4 @@
-﻿"""Seed script to populate database with initial data."""
+"""Seed script to populate database with initial data."""
 
 import uuid
 from datetime import date, time, timedelta
@@ -99,8 +99,16 @@ def seed():
 
         # --- Clients ---
         clients_data = [
-            {"name": "Juan Pérez", "phone": "+34 611 111 111", "email": "juan@email.com"},
-            {"name": "Miguel Torres", "phone": "+34 622 222 222", "email": "miguel@email.com"},
+            {
+                "name": "Juan Pérez",
+                "phone": "+34 611 111 111",
+                "email": "juan@email.com",
+            },
+            {
+                "name": "Miguel Torres",
+                "phone": "+34 622 222 222",
+                "email": "miguel@email.com",
+            },
             {"name": "Roberto Sánchez", "phone": "+34 633 333 333"},
         ]
 

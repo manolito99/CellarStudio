@@ -40,7 +40,9 @@ def get_availability(
         day_of_week = target_date.weekday()
         schedule_records = (
             db.query(Schedule)
-            .filter(Schedule.barber_id == barber_id, Schedule.day_of_week == day_of_week)
+            .filter(
+                Schedule.barber_id == barber_id, Schedule.day_of_week == day_of_week
+            )
             .order_by(Schedule.start_time)
             .all()
         )
@@ -56,7 +58,9 @@ def get_availability(
         while current + duration <= end_of_block:
             slot_start = current.time()
             slot_end = (current + duration).time()
-            slots.append(TimeSlot(start_time=slot_start, end_time=slot_end, available=True))
+            slots.append(
+                TimeSlot(start_time=slot_start, end_time=slot_end, available=True)
+            )
             current += timedelta(minutes=60)
 
     # Get existing appointments for this barber on this date (not cancelled)

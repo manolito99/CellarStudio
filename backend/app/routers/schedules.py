@@ -83,7 +83,11 @@ def list_blocked_slots(
     return query.order_by(BlockedSlot.date.desc()).all()
 
 
-@router.post("/blocked-slots", response_model=BlockedSlotResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/blocked-slots",
+    response_model=BlockedSlotResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 def create_blocked_slot(
     data: BlockedSlotCreate,
     db: Annotated[Session, Depends(get_db)],
@@ -123,7 +127,11 @@ def list_available_days(
     )
 
 
-@router.post("/available-days", response_model=AvailableDayResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/available-days",
+    response_model=AvailableDayResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 def create_available_day(
     data: AvailableDayCreate,
     db: Annotated[Session, Depends(get_db)],

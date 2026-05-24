@@ -7,7 +7,17 @@ from app.config import settings
 from app.database import Base
 
 # Import all models so Base.metadata is populated
-from app.models import user, client, barber, service, appointment, schedule, blocked_slot  # noqa: F401
+from app.models import (
+    user,
+    client,
+    barber,
+    service,
+    appointment,
+    schedule,
+    blocked_slot,
+    push_subscription,
+    notification,
+)  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)

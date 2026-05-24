@@ -516,8 +516,12 @@ async def send_email_async(
     if ics_content:
         ics_bytes = ics_content.encode("utf-8")
         ics_part = MIMEApplication(ics_bytes, _subtype="octet-stream")
-        ics_part.replace_header("Content-Type", 'text/calendar; charset="utf-8"; method=REQUEST')
-        ics_part.add_header("Content-Disposition", f'attachment; filename="{ics_filename}"')
+        ics_part.replace_header(
+            "Content-Type", 'text/calendar; charset="utf-8"; method=REQUEST'
+        )
+        ics_part.add_header(
+            "Content-Disposition", f'attachment; filename="{ics_filename}"'
+        )
         outer.attach(ics_part)
 
     try:
@@ -532,7 +536,9 @@ async def send_email_async(
         )
         cc_note = f" CC:{cc_email}" if cc_email else ""
         bcc_note = f" BCC:{bcc_email}" if bcc_email else ""
-        logger.info(f"Email sent to {to_email}{cc_note}{bcc_note} (subject: {subject!r})")
+        logger.info(
+            f"Email sent to {to_email}{cc_note}{bcc_note} (subject: {subject!r})"
+        )
         return True
     except Exception as e:
         logger.error(f"Failed to send email to {to_email}: {e}")
