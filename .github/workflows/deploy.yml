@@ -17,8 +17,14 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            set -euo pipefail
             cd ~/CellarStudio
-            git pull origin main
+            # Force-sync to origin/main: discards any accidental local edits on
+            # the production server so a stray uncommitted change can never make
+            # the deploy silently use stale code (as happened with 4b27696).
+            git fetch --prune origin main
+            git reset --hard origin/main
+            echo "Deploying $(git rev-parse --short HEAD): $(git log -1 --pretty=%s)"
             docker compose -f docker-compose.prod.yml build
             docker compose -f docker-compose.prod.yml up -d db
             sleep 5
@@ -26,4 +32,5 @@ jobs:
             docker compose -f docker-compose.prod.yml up -d
             sleep 5
             docker compose -f /home/ubuntu/proxy/docker-compose.yml exec -T proxy nginx -s reload
-            docker image prune -f
+            docker image prune -af --filter "until=1h"
+            docker builder prune -af --keep-storage=2GB
