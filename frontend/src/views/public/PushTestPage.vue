@@ -255,6 +255,21 @@ onMounted(async () => {
   }
 
   await loadNotifications()
+
+  // Auto-request push permission when the user enters the panel: surfaces the
+  // browser's native permission dialog without requiring an extra click.
+  // Triggered by the navigation gesture, so modern browsers allow it.
+  // No-op when there's no profile, permission was already decided (granted
+  // or denied), or the device is already subscribed.
+  if (
+    profile.value &&
+    isPushSupported() &&
+    pushPermission.value === 'default' &&
+    !pushSubscribed.value &&
+    !subscribing.value
+  ) {
+    subscribe()
+  }
 })
 </script>
 

@@ -131,15 +131,16 @@ async def create_appointment(
         duration_minutes=appointment.service.duration_minutes,
     )
 
-    # Save notification for the client
+    # Save notification for the client (in-app feed)
+    notification_body = (
+        f"{appointment.service.name} el {date_str} a las {time_str}h "
+        f"con {appointment.barber.name}"
+    )
     db.add(
         Notification(
             client_phone=appointment.client.phone or "",
             title="Reserva confirmada",
-            body=(
-                f"{appointment.service.name} el {date_str} a las {time_str}h "
-                f"con {appointment.barber.name}"
-            ),
+            body=notification_body,
             icon="booking",
         )
     )
@@ -154,6 +155,44 @@ async def create_appointment(
         date_str=date_str,
         time_str=time_str,
     )
+
+    # Send push notification to every device the client has subscribed.
+    # First-time bookers won't have a subscription yet (they'll subscribe
+    # on the confirmation page); for repeat clients this fires immediately.
+    # Push failures must NEVER break booking creation.
+    phone = (appointment.client.phone or "").strip()
+    if phone:
+        import logging
+
+        from app.services.push_service import send_push_notification
+
+        try:
+            subscriptions = (
+                db.query(PushSubscription)
+                .filter(PushSubscription.client_phone == phone)
+                .all()
+            )
+            for sub in subscriptions:
+                try:
+                    result = send_push_notification(
+                        subscription_info={
+                            "endpoint": sub.endpoint,
+                            "keys": {"p256dh": sub.p256dh_key, "auth": sub.auth_key},
+                        },
+                        title="Reserva confirmada",
+                        body=notification_body,
+                    )
+                    if result is None:
+                        db.delete(sub)
+                except Exception as e:  # noqa: BLE001
+                    logging.getLogger(__name__).error(
+                        f"Booking push failed for {sub.endpoint[:40]}...: {e}"
+                    )
+            if subscriptions:
+                db.commit()
+        except Exception as e:  # noqa: BLE001
+            logging.getLogger(__name__).error(f"Booking push block failed: {e}")
+            db.rollback()
 
     return appointment
 
