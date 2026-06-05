@@ -5,10 +5,14 @@ from datetime import datetime, timedelta, timezone
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+# Lock key shared by all uvicorn workers so only one runs the reminder job per tick.
+REMINDER_LOCK_KEY = 8472001
 
 
 def send_appointment_reminders():
@@ -27,6 +31,15 @@ def send_appointment_reminders():
 
     db = SessionLocal()
     try:
+        # With multiple uvicorn workers each running their own scheduler, this
+        # advisory lock ensures only one worker actually processes a given tick.
+        # Released automatically on commit/rollback.
+        locked = db.execute(
+            text("SELECT pg_try_advisory_xact_lock(:k)"),
+            {"k": REMINDER_LOCK_KEY},
+        ).scalar()
+        if not locked:
+            return
         # ------------------------------------------------------------------
         # Pass 1 — WhatsApp reminder (2h before, configurable)
         # ------------------------------------------------------------------
