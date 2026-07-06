@@ -10,8 +10,9 @@
       </button>
     </div>
 
-    <div class="bg-white border border-gray-200 rounded-xl overflow-x-auto">
-      <table class="w-full text-sm min-w-[640px]">
+    <!-- Escritorio: tabla -->
+    <div class="hidden md:block bg-white border border-gray-200 rounded-xl overflow-x-auto">
+      <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-gray-200">
             <th class="px-4 py-3 text-left text-dark-400 font-medium">Nombre</th>
@@ -53,6 +54,58 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Móvil: tarjetas -->
+    <div class="md:hidden space-y-3">
+      <div
+        v-for="service in services"
+        :key="service.id"
+        class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm"
+      >
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <p class="text-[#1d1d1f] font-semibold text-base truncate">{{ service.name }}</p>
+            <p v-if="service.description" class="text-dark-500 text-xs mt-0.5">{{ service.description }}</p>
+          </div>
+          <p class="text-brand-400 font-bold text-lg shrink-0">${{ service.price.toLocaleString() }}</p>
+        </div>
+
+        <div class="flex items-center gap-2 mt-3">
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-[#1d1d1f]">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            {{ service.duration_minutes }} min
+          </span>
+          <button
+            @click="toggleActive(service)"
+            class="px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
+            :class="service.is_active ? 'bg-green-500/10 text-green-500' : 'bg-gray-100 text-[#86868b]'"
+          >
+            {{ service.is_active ? 'Activo' : 'Inactivo' }}
+          </button>
+        </div>
+
+        <div class="flex gap-2 mt-4">
+          <button
+            @click="openModal(service)"
+            class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#1d1d1f] hover:bg-[#3a3a3c] text-white text-sm font-semibold transition-colors"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            Editar
+          </button>
+          <button
+            @click="deleteService(service.id)"
+            class="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 text-sm font-semibold transition-colors"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Ocultar
+          </button>
+        </div>
+      </div>
+
+      <div v-if="services.length === 0" class="bg-white border border-gray-200 rounded-2xl p-8 text-center text-dark-500">
+        No hay servicios
+      </div>
     </div>
 
     <!-- Modal -->
