@@ -16,7 +16,7 @@
           v-reveal="'scale'"
           :data-delay="index * 80"
           class="relative rounded-2xl overflow-hidden cursor-pointer group"
-          :class="index === 0 ? 'aspect-auto md:col-span-2 md:row-span-2' : 'aspect-square'"
+          :class="index === 0 ? 'aspect-square md:aspect-auto md:col-span-2 md:row-span-2' : 'aspect-square'"
           @click="openLightbox(index)"
         >
           <img

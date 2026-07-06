@@ -13,7 +13,7 @@
     <!-- Content -->
     <div class="relative z-10 text-center px-4 max-w-4xl mx-auto">
       <!-- Title -->
-      <h1 class="hero-enter hero-delay-2 text-5xl md:text-7xl lg:text-[5.5rem] font-heading font-semibold mb-6 leading-[0.95] tracking-tight">
+      <h1 class="hero-enter hero-delay-2 text-[clamp(2.25rem,10vw,3rem)] md:text-7xl lg:text-[5.5rem] font-heading font-semibold mb-6 leading-[1.05] md:leading-[0.95] tracking-tight text-balance break-words">
         <span class="gradient-text">Cellar Barber Studio</span>
       </h1>
 
@@ -47,7 +47,7 @@
       <div class="hero-enter hero-delay-4 flex flex-col sm:flex-row gap-4 justify-center">
         <router-link
           to="/booking"
-          class="btn-primary px-10 py-4 bg-[#1d1d1f] text-white text-lg font-semibold rounded-2xl"
+          class="btn-primary w-full sm:w-auto px-10 py-4 bg-[#1d1d1f] text-white text-lg font-semibold rounded-2xl text-center"
         >
           Reserva tu cita
         </router-link>
@@ -61,7 +61,7 @@
         <!-- Mobile only: Mis reservas -->
         <router-link
           to="/my-appointments"
-          class="btn-secondary sm:hidden px-10 py-4 border border-[#d2d2d7] bg-white/50 backdrop-blur-sm text-[#1d1d1f] text-lg font-semibold rounded-2xl hover:border-[#86868b] text-center"
+          class="btn-secondary sm:hidden w-full px-10 py-4 border border-[#d2d2d7] bg-white/50 backdrop-blur-sm text-[#1d1d1f] text-lg font-semibold rounded-2xl hover:border-[#86868b] text-center"
         >
           Mis reservas
         </router-link>
