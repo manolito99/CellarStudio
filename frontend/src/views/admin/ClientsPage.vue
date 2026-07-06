@@ -40,12 +40,21 @@
             <td class="px-4 py-3 text-dark-300">{{ client.email || '-' }}</td>
             <td class="px-4 py-3 text-dark-400">{{ formatDate(client.created_at) }}</td>
             <td class="px-4 py-3">
-              <button
-                @click="viewHistory(client)"
-                class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-[#86868b] text-xs rounded-lg transition-colors"
-              >
-                Historial
-              </button>
+              <div class="flex gap-1">
+                <button
+                  @click="viewHistory(client)"
+                  class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-[#86868b] text-xs rounded-lg transition-colors"
+                >
+                  Historial
+                </button>
+                <button
+                  @click="deleteClient(client.id)"
+                  class="p-1.5 rounded-lg hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors"
+                  title="Ocultar cliente"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -161,6 +170,17 @@ async function viewHistory(client: Client) {
   selectedClient.value = client
   clientHistory.value = await adminApi.getClientAppointments(client.id)
   showHistory.value = true
+}
+
+async function deleteClient(id: string) {
+  if (!confirm('¿Ocultar este cliente? Dejará de aparecer en el listado, pero se conservará su historial de citas.')) return
+  try {
+    await adminApi.deleteClient(id)
+    await loadClients()
+  } catch (err) {
+    const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail
+    alert(typeof detail === 'string' ? detail : 'No se pudo ocultar el cliente.')
+  }
 }
 
 function exportCSV() {

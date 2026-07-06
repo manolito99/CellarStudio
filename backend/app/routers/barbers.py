@@ -1,7 +1,8 @@
+from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, with_loader_criteria
 
 from app.dependencies import get_current_user, get_db
 from app.models.barber import Barber
@@ -19,7 +20,11 @@ def list_barbers(
 ):
     return (
         db.query(Barber)
-        .options(joinedload(Barber.services))
+        .options(
+            joinedload(Barber.services),
+            with_loader_criteria(Service, Service.deleted_at.is_(None)),
+        )
+        .filter(Barber.deleted_at.is_(None))
         .order_by(Barber.sort_order)
         .all()
     )
@@ -57,8 +62,11 @@ def get_barber(
 ):
     barber = (
         db.query(Barber)
-        .options(joinedload(Barber.services))
-        .filter(Barber.id == barber_id)
+        .options(
+            joinedload(Barber.services),
+            with_loader_criteria(Service, Service.deleted_at.is_(None)),
+        )
+        .filter(Barber.id == barber_id, Barber.deleted_at.is_(None))
         .first()
     )
     if not barber:
@@ -76,7 +84,7 @@ def update_barber(
     barber = (
         db.query(Barber)
         .options(joinedload(Barber.services))
-        .filter(Barber.id == barber_id)
+        .filter(Barber.id == barber_id, Barber.deleted_at.is_(None))
         .first()
     )
     if not barber:
@@ -103,8 +111,18 @@ def delete_barber(
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[User, Depends(get_current_user)],
 ):
-    barber = db.query(Barber).filter(Barber.id == barber_id).first()
+    barber = (
+        db.query(Barber)
+        .filter(Barber.id == barber_id, Barber.deleted_at.is_(None))
+        .first()
+    )
     if not barber:
         raise HTTPException(status_code=404, detail="Barbero no encontrado")
-    db.delete(barber)
+    # Soft delete: barbers are referenced by appointments (FK) and own their
+    # schedules/blocked slots/available days. A hard delete would raise an
+    # IntegrityError (appointments) or wipe that data (cascade). Mark it as
+    # deleted and deactivate it so it is excluded from the admin list, public
+    # site and booking, while keeping the appointment history intact.
+    barber.deleted_at = datetime.now(timezone.utc)
+    barber.is_active = False
     db.commit()

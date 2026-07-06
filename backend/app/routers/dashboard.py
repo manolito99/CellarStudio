@@ -72,13 +72,18 @@ def get_dashboard_stats(
             Client.created_at
             >= datetime.combine(month_start, datetime.min.time()).replace(
                 tzinfo=timezone.utc
-            )
+            ),
+            Client.deleted_at.is_(None),
         )
         .scalar()
     )
 
     # Total clients
-    total_clients = db.query(func.count(Client.id)).scalar()
+    total_clients = (
+        db.query(func.count(Client.id))
+        .filter(Client.deleted_at.is_(None))
+        .scalar()
+    )
 
     return {
         "appointments_today": appointments_today,

@@ -17,6 +17,11 @@ class Client(Base):
     phone: Mapped[str] = mapped_column(String(50), nullable=False)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Soft-delete marker: when set, the client is hidden from admin lists and
+    # dashboard counts, but appointment history is preserved.
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

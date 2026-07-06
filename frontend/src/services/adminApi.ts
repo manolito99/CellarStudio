@@ -142,6 +142,9 @@ export const adminApi = {
   getClientAppointments(id: string): Promise<Appointment[]> {
     return api.get(`/admin/clients/${id}/appointments`).then((r) => r.data)
   },
+  deleteClient(id: string) {
+    return api.delete(`/admin/clients/${id}`)
+  },
 
   // Schedules
   getBarberSchedule(barberId: string): Promise<ScheduleEntry[]> {

@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -16,7 +17,12 @@ def list_services(
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[User, Depends(get_current_user)],
 ):
-    return db.query(Service).order_by(Service.sort_order).all()
+    return (
+        db.query(Service)
+        .filter(Service.deleted_at.is_(None))
+        .order_by(Service.sort_order)
+        .all()
+    )
 
 
 @router.post("/", response_model=ServiceResponse, status_code=status.HTTP_201_CREATED)
@@ -38,7 +44,11 @@ def get_service(
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[User, Depends(get_current_user)],
 ):
-    service = db.query(Service).filter(Service.id == service_id).first()
+    service = (
+        db.query(Service)
+        .filter(Service.id == service_id, Service.deleted_at.is_(None))
+        .first()
+    )
     if not service:
         raise HTTPException(status_code=404, detail="Servicio no encontrado")
     return service
@@ -51,7 +61,11 @@ def update_service(
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[User, Depends(get_current_user)],
 ):
-    service = db.query(Service).filter(Service.id == service_id).first()
+    service = (
+        db.query(Service)
+        .filter(Service.id == service_id, Service.deleted_at.is_(None))
+        .first()
+    )
     if not service:
         raise HTTPException(status_code=404, detail="Servicio no encontrado")
 
@@ -69,8 +83,17 @@ def delete_service(
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[User, Depends(get_current_user)],
 ):
-    service = db.query(Service).filter(Service.id == service_id).first()
+    service = (
+        db.query(Service)
+        .filter(Service.id == service_id, Service.deleted_at.is_(None))
+        .first()
+    )
     if not service:
         raise HTTPException(status_code=404, detail="Servicio no encontrado")
-    db.delete(service)
+    # Soft delete: services are referenced by appointments (FK), so a hard delete
+    # would raise an IntegrityError. Mark it as deleted and deactivate it so it is
+    # excluded from the admin list, public booking and availability, while keeping
+    # the appointment history intact.
+    service.deleted_at = datetime.now(timezone.utc)
+    service.is_active = False
     db.commit()

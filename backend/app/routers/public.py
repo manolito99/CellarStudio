@@ -2,7 +2,7 @@ from datetime import date, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, with_loader_criteria
 
 from app.config import settings
 from app.dependencies import get_db
@@ -46,7 +46,7 @@ router = APIRouter(prefix="/api/public", tags=["Public"])
 def list_services(db: Annotated[Session, Depends(get_db)]):
     return (
         db.query(Service)
-        .filter(Service.is_active.is_(True))
+        .filter(Service.is_active.is_(True), Service.deleted_at.is_(None))
         .order_by(Service.sort_order)
         .all()
     )
@@ -56,8 +56,13 @@ def list_services(db: Annotated[Session, Depends(get_db)]):
 def list_barbers(db: Annotated[Session, Depends(get_db)]):
     return (
         db.query(Barber)
-        .options(joinedload(Barber.services))
-        .filter(Barber.is_active.is_(True))
+        .options(
+            joinedload(Barber.services),
+            # Keep soft-deleted services out of the embedded services list so they
+            # never surface on the public site (e.g. the landing team section).
+            with_loader_criteria(Service, Service.deleted_at.is_(None)),
+        )
+        .filter(Barber.is_active.is_(True), Barber.deleted_at.is_(None))
         .order_by(Barber.sort_order)
         .all()
     )

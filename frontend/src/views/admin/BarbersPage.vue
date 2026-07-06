@@ -138,20 +138,33 @@ function openModal(barber?: Barber) {
   showModal.value = true
 }
 
+function errorMessage(err: unknown, fallback: string): string {
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail
+  return typeof detail === 'string' ? detail : fallback
+}
+
 async function saveBarber() {
-  if (editing.value) {
-    await adminApi.updateBarber(editing.value, { ...form })
-  } else {
-    await adminApi.createBarber({ ...form })
+  try {
+    if (editing.value) {
+      await adminApi.updateBarber(editing.value, { ...form })
+    } else {
+      await adminApi.createBarber({ ...form })
+    }
+    showModal.value = false
+    await loadData()
+  } catch (err) {
+    alert(errorMessage(err, 'No se pudo guardar el barbero. Inténtalo de nuevo.'))
   }
-  showModal.value = false
-  await loadData()
 }
 
 async function deleteBarber(id: string) {
-  if (!confirm('¿Eliminar este barbero?')) return
-  await adminApi.deleteBarber(id)
-  await loadData()
+  if (!confirm('¿Ocultar este barbero? Dejará de aparecer en la web y en el panel, pero se conservará el historial de citas.')) return
+  try {
+    await adminApi.deleteBarber(id)
+    await loadData()
+  } catch (err) {
+    alert(errorMessage(err, 'No se pudo eliminar el barbero.'))
+  }
 }
 
 onMounted(loadData)

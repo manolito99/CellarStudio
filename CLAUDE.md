@@ -56,13 +56,18 @@ Monorepo with three services orchestrated via Docker Compose:
 
 ### Alembic Migrations
 
-Fully implemented. 3 migrations applied in production (currently at `head`):
+Fully implemented. Migrations applied in production (currently at `head`):
 
 | Version | Description |
 |---|---|
 | `001_initial_schema` | Initial tables |
 | `002_add_reminder_sent` | Add `reminder_sent` column to appointments |
 | `003_add_available_days` | Add `available_days` table |
+| `004_add_email_reminder_sent` | Add `email_reminder_sent` column to appointments |
+| `005_add_push_subscriptions` | Add `push_subscriptions` table |
+| `006_add_notifications` | Add `notifications` table |
+| `007_add_service_deleted_at` | Add `deleted_at` column to services (soft delete) |
+| `008_soft_delete_barbers_clients` | Add `deleted_at` column to barbers and clients (soft delete) |
 
 Schema changes must be done via Alembic migrations, **not** by modifying models alone.
 

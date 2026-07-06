@@ -62,6 +62,8 @@ def create_public_appointment(db: Session, data: AppointmentCreate) -> Appointme
         client.name = data.client_name
         if data.client_email:
             client.email = data.client_email
+        # Revive a previously soft-deleted client that books again
+        client.deleted_at = None
 
     # Calculate end time
     end_dt = datetime.combine(data.date, data.start_time) + timedelta(

@@ -128,25 +128,42 @@ function openModal(service?: Service) {
   showModal.value = true
 }
 
+function errorMessage(err: unknown, fallback: string): string {
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail
+  return typeof detail === 'string' ? detail : fallback
+}
+
 async function saveService() {
-  if (editing.value) {
-    await adminApi.updateService(editing.value, { ...form })
-  } else {
-    await adminApi.createService({ ...form })
+  try {
+    if (editing.value) {
+      await adminApi.updateService(editing.value, { ...form })
+    } else {
+      await adminApi.createService({ ...form })
+    }
+    showModal.value = false
+    await loadServices()
+  } catch (err) {
+    alert(errorMessage(err, 'No se pudo guardar el servicio. Inténtalo de nuevo.'))
   }
-  showModal.value = false
-  await loadServices()
 }
 
 async function toggleActive(service: Service) {
-  await adminApi.updateService(service.id, { is_active: !service.is_active })
-  await loadServices()
+  try {
+    await adminApi.updateService(service.id, { is_active: !service.is_active })
+    await loadServices()
+  } catch (err) {
+    alert(errorMessage(err, 'No se pudo cambiar el estado del servicio.'))
+  }
 }
 
 async function deleteService(id: string) {
-  if (!confirm('¿Eliminar este servicio?')) return
-  await adminApi.deleteService(id)
-  await loadServices()
+  if (!confirm('¿Ocultar este servicio? Dejará de aparecer en la web y en el panel, pero se conservará el historial de citas.')) return
+  try {
+    await adminApi.deleteService(id)
+    await loadServices()
+  } catch (err) {
+    alert(errorMessage(err, 'No se pudo eliminar el servicio.'))
+  }
 }
 
 onMounted(loadServices)

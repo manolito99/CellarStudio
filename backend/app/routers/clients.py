@@ -1,6 +1,7 @@
+from datetime import datetime, timezone
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
 
 from app.dependencies import get_current_user, get_db
@@ -20,7 +21,7 @@ def list_clients(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
 ):
-    query = db.query(Client)
+    query = db.query(Client).filter(Client.deleted_at.is_(None))
 
     if search:
         query = query.filter(
@@ -43,7 +44,11 @@ def get_client(
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[User, Depends(get_current_user)],
 ):
-    client = db.query(Client).filter(Client.id == client_id).first()
+    client = (
+        db.query(Client)
+        .filter(Client.id == client_id, Client.deleted_at.is_(None))
+        .first()
+    )
     if not client:
         raise HTTPException(status_code=404, detail="Cliente no encontrado")
     return client
@@ -56,7 +61,11 @@ def update_client(
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[User, Depends(get_current_user)],
 ):
-    client = db.query(Client).filter(Client.id == client_id).first()
+    client = (
+        db.query(Client)
+        .filter(Client.id == client_id, Client.deleted_at.is_(None))
+        .first()
+    )
     if not client:
         raise HTTPException(status_code=404, detail="Cliente no encontrado")
 
@@ -68,13 +77,37 @@ def update_client(
     return client
 
 
+@router.delete("/{client_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_client(
+    client_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    _: Annotated[User, Depends(get_current_user)],
+):
+    client = (
+        db.query(Client)
+        .filter(Client.id == client_id, Client.deleted_at.is_(None))
+        .first()
+    )
+    if not client:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado")
+    # Soft delete: clients are referenced by appointments (FK). Mark as deleted so
+    # the client is hidden from admin lists and dashboard counts, while keeping the
+    # appointment history intact. If the same phone books again it is revived.
+    client.deleted_at = datetime.now(timezone.utc)
+    db.commit()
+
+
 @router.get("/{client_id}/appointments")
 def get_client_appointments(
     client_id: str,
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[User, Depends(get_current_user)],
 ):
-    client = db.query(Client).filter(Client.id == client_id).first()
+    client = (
+        db.query(Client)
+        .filter(Client.id == client_id, Client.deleted_at.is_(None))
+        .first()
+    )
     if not client:
         raise HTTPException(status_code=404, detail="Cliente no encontrado")
 
