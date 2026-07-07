@@ -9,7 +9,7 @@ from app.models.available_day import AvailableDay
 from app.models.blocked_slot import BlockedSlot
 from app.models.schedule import Schedule
 from app.models.service import Service
-from app.schemas.schedule import AvailabilityResponse, TimeSlot
+from app.schemas.schedule import MIN_SLOT_INTERVAL, AvailabilityResponse, TimeSlot
 
 
 def get_availability(
@@ -34,7 +34,10 @@ def get_availability(
     )
 
     if available_day_records:
-        work_blocks = [(r.start_time, r.end_time) for r in available_day_records]
+        work_blocks = [
+            (r.start_time, r.end_time, r.slot_interval_minutes)
+            for r in available_day_records
+        ]
     else:
         # Fall back to recurring weekly schedule (supports split shifts)
         day_of_week = target_date.weekday()
@@ -48,11 +51,17 @@ def get_availability(
         )
         if not schedule_records:
             return AvailabilityResponse(barber_id=barber_id, date=target_date, slots=[])
-        work_blocks = [(s.start_time, s.end_time) for s in schedule_records]
+        work_blocks = [
+            (s.start_time, s.end_time, s.slot_interval_minutes)
+            for s in schedule_records
+        ]
 
     # Generate all possible slots across all work blocks (supports split shifts)
     slots: list[TimeSlot] = []
-    for work_start, work_end in work_blocks:
+    for work_start, work_end, interval in work_blocks:
+        # Hard floor: never trust the stored interval in the loop. A 0/negative
+        # value would loop forever (this runs on a public, unauthenticated route).
+        step = max(int(interval or MIN_SLOT_INTERVAL), MIN_SLOT_INTERVAL)
         current = datetime.combine(target_date, work_start)
         end_of_block = datetime.combine(target_date, work_end)
         while current + duration <= end_of_block:
@@ -61,7 +70,7 @@ def get_availability(
             slots.append(
                 TimeSlot(start_time=slot_start, end_time=slot_end, available=True)
             )
-            current += timedelta(minutes=60)
+            current += timedelta(minutes=step)
 
     # Get existing appointments for this barber on this date (not cancelled)
     appointments = (

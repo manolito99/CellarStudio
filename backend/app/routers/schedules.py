@@ -61,6 +61,7 @@ def update_barber_schedule(
             day_of_week=entry.day_of_week,
             start_time=entry.start_time,
             end_time=entry.end_time,
+            slot_interval_minutes=entry.slot_interval_minutes,
         )
         db.add(schedule)
         new_schedules.append(schedule)

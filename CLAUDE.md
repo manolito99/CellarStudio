@@ -68,6 +68,7 @@ Fully implemented. Migrations applied in production (currently at `head`):
 | `006_add_notifications` | Add `notifications` table |
 | `007_add_service_deleted_at` | Add `deleted_at` column to services (soft delete) |
 | `008_soft_delete_barbers_clients` | Add `deleted_at` column to barbers and clients (soft delete) |
+| `009_add_slot_interval` | Add `slot_interval_minutes` to schedules and available_days (configurable booking interval) |
 
 Schema changes must be done via Alembic migrations, **not** by modifying models alone.
 
@@ -96,7 +97,7 @@ Schema changes must be done via Alembic migrations, **not** by modifying models 
 - **Seed admin**: `admin@cellarstudio.com` / `admin123`
 - **Seed services** (production): Color (0 min → Consultar duración), Haircut (60 min), Haircut & Beard (60 min)
 - **WhatsApp reminders**: APScheduler runs every 30 min, sends Twilio WhatsApp reminder to clients with appointments in the next `WHATSAPP_REMINDER_HOURS` hours (only once per appointment via `reminder_sent` flag)
-- **Availability algorithm**: 15-minute intervals, filters past times, booked appointments, and blocked slots
+- **Availability algorithm**: bookable start times step by the shift's `slot_interval_minutes` (configurable per day in admin Horarios; default 60, min 15 enforced in schema + a hard floor in the generator loop to prevent a 0-interval infinite loop). Slot length = service duration. Filters past times, booked appointments, and blocked slots
 - **Brand colors**: `#000000` (primary), `#ffffff` (background) — Apple-inspired B&W palette defined in `tailwind.config.js`
 - **Capacitor appId**: `com.cellarstudio.app`, webDir: `dist`
 - **Schedule**: `day_of_week` uses 0=Monday through 6=Sunday

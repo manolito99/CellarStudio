@@ -20,5 +20,9 @@ class Schedule(Base):
     )  # 0=Monday, 6=Sunday
     start_time: Mapped[str] = mapped_column(Time, nullable=False)
     end_time: Mapped[str] = mapped_column(Time, nullable=False)
+    # Minutes between consecutive bookable start times for this shift.
+    slot_interval_minutes: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=60, server_default="60"
+    )
 
     barber = relationship("Barber", back_populates="schedules")

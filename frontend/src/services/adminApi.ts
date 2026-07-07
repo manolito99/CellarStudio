@@ -47,6 +47,7 @@ export interface ScheduleEntry {
   day_of_week: number
   start_time: string
   end_time: string
+  slot_interval_minutes?: number
 }
 
 export interface BlockedSlot {
@@ -64,6 +65,7 @@ export interface AvailableDay {
   date: string       // "2026-03-15"
   start_time: string // "09:00:00"
   end_time: string   // "20:00:00"
+  slot_interval_minutes?: number
 }
 
 export const adminApi = {
@@ -169,7 +171,7 @@ export const adminApi = {
   getAvailableDays(barberId: string): Promise<AvailableDay[]> {
     return api.get('/admin/available-days', { params: { barber_id: barberId } }).then((r) => r.data)
   },
-  createAvailableDay(data: { barber_id: string; date: string; start_time: string; end_time: string }): Promise<AvailableDay> {
+  createAvailableDay(data: { barber_id: string; date: string; start_time: string; end_time: string; slot_interval_minutes?: number }): Promise<AvailableDay> {
     return api.post('/admin/available-days', data).then((r) => r.data)
   },
   deleteAvailableDay(id: string): Promise<void> {

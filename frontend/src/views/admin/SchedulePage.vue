@@ -107,6 +107,26 @@
               </svg>
               Agregar tramo
             </button>
+
+            <!-- Intervalo entre citas -->
+            <div class="flex flex-wrap items-center gap-2 pt-3 mt-1 border-t border-gray-50">
+              <label class="text-xs text-[#86868b]">Intervalo entre citas</label>
+              <select
+                v-model.number="cfg.interval"
+                :disabled="savingRecurring"
+                class="px-2 py-1 bg-[#f5f5f7] border border-gray-200 rounded-lg text-sm text-[#1d1d1f] focus:border-[#1d1d1f] focus:outline-none disabled:opacity-30"
+              >
+                <option v-for="opt in INTERVAL_OPTIONS" :key="opt" :value="opt">{{ opt }} min</option>
+              </select>
+              <button
+                type="button"
+                @click="applyIntervalToAll(cfg.interval)"
+                :disabled="savingRecurring"
+                class="text-xs text-[#1d1d1f] underline hover:no-underline disabled:opacity-30"
+              >
+                Aplicar a todos los días
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -200,8 +220,11 @@ interface DayConfig {
   day: number     // 0 = Lunes … 6 = Domingo
   name: string
   isOpen: boolean
+  interval: number  // minutos entre citas
   blocks: TimeBlock[]
 }
+
+const INTERVAL_OPTIONS = [15, 30, 45, 60]
 
 // ── State ────────────────────────────────────────────────────────────────────
 const barbers = ref<{ id: string; name: string }[]>([])
@@ -212,9 +235,14 @@ const dayConfigs = ref<DayConfig[]>(
     day: i,
     name,
     isOpen: false,
+    interval: 60,
     blocks: [{ start: '09:00', end: '20:00' }],
   }))
 )
+
+function applyIntervalToAll(interval: number) {
+  dayConfigs.value.forEach((c) => { c.interval = interval })
+}
 
 const availableDays = ref<AvailableDay[]>([])
 const blockedSlots = ref<BlockedSlot[]>([])
@@ -330,6 +358,7 @@ async function loadData() {
         day: i,
         name,
         isOpen: dayEntries.length > 0,
+        interval: dayEntries[0]?.slot_interval_minutes ?? 60,
         blocks: dayEntries.length > 0
           ? dayEntries.map((e: ScheduleEntry) => ({
               start: e.start_time.substring(0, 5),
@@ -356,6 +385,7 @@ async function saveRecurring() {
           day_of_week: c.day,
           start_time: b.start + ':00',
           end_time: b.end + ':00',
+          slot_interval_minutes: c.interval,
         }))
       )
     await adminApi.updateBarberSchedule(selectedBarberId.value, schedules)
@@ -410,6 +440,7 @@ async function toggleDay(d: Date) {
           date: ds,
           start_time: b.start + ':00',
           end_time: b.end + ':00',
+          slot_interval_minutes: cfg?.interval ?? 60,
         })
       )
     )
