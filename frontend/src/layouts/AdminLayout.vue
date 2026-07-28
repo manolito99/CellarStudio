@@ -32,7 +32,7 @@
         <!-- Sidebar desktop -->
         <aside
           :class="[
-            'fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-gray-200 transition-all duration-300',
+            'admin-sidebar fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-gray-200 transition-all duration-300',
             'lg:static lg:w-56',
             sidebarOpen ? 'w-64 translate-x-0' : '-translate-x-full lg:translate-x-0',
           ]"
@@ -227,5 +227,14 @@ ion-content {
 }
 ion-footer {
   --background: transparent;
+}
+/* En movil el drawer comparte pantalla con la tab bar inferior (footer lg:hidden),
+   que Ionic pinta por encima del contenido. Reservamos su altura + el safe-area
+   del iPhone para que los botones del footer del drawer ("Ver la web" / "Cerrar
+   sesion") no queden tapados. Solo aplica por debajo de lg (donde existe la tab bar). */
+@media (max-width: 1023px) {
+  .admin-sidebar {
+    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+  }
 }
 </style>
