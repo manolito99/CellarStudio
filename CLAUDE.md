@@ -77,9 +77,9 @@ Schema changes must be done via Alembic migrations, **not** by modifying models 
 - `src/services/api.ts` — Axios instance with JWT interceptor (auto-refresh on 401)
 - `src/services/{authApi,publicApi,adminApi}.ts` — API clients grouped by scope
 - `src/stores/` — Pinia stores (auth, appointments, services)
-- `src/composables/` — `useBooking` (5-step booking flow), `useAuth`, `usePlatform`
-- `src/router/index.ts` — Public routes (`/`, `/booking`, `/confirmation`), admin routes with `meta.requiresAuth` guard
-- `src/views/public/` — Landing, booking wizard, confirmation
+- `src/composables/` — `useBooking` (5-step booking flow), `useAuth`, `usePlatform`, `useClientProfile` (persists client name/phone/email in `localStorage` under `cellar_client_profile`; phone is the minimum required field, used to pre-fill booking/lookup and to link push subscriptions)
+- `src/router/index.ts` — Public routes (`/`, `/booking`, `/confirmation`, `/my-appointments`, `/notificaciones`), admin routes with `meta.requiresAuth` guard
+- `src/views/public/` — Landing, booking wizard, confirmation, my-appointments, notifications (`PushTestPage.vue` at `/notificaciones`)
 - `src/views/admin/` — Dashboard, CRUD pages for appointments/services/barbers/clients/schedule/settings
 - `src/components/public/ServicesGrid.vue` — Fetches services from API, `formatDuration()` handles display: 0 min → "Consultar duración", multiples of 60 → "Xh", otherwise "X min"
 
@@ -97,6 +97,8 @@ Schema changes must be done via Alembic migrations, **not** by modifying models 
 - **Seed admin**: `admin@cellarstudio.com` / `admin123`
 - **Seed services** (production): Color (0 min → Consultar duración), Haircut (60 min), Haircut & Beard (60 min)
 - **WhatsApp reminders**: APScheduler runs every 30 min, sends Twilio WhatsApp reminder to clients with appointments in the next `WHATSAPP_REMINDER_HOURS` hours (only once per appointment via `reminder_sent` flag)
+- **Web Push notifications**: VAPID web-push. Subscriptions (`push_subscriptions` table) and in-app notifications (`notifications` table) are **keyed by `client_phone`** — reminders and booking confirmations are delivered to every subscription matching the appointment's phone. Managed from `/notificaciones` (`PushTestPage.vue`): subscribe/list/mark-read live under `/api/public/push/*` and `/api/public/notifications*`. A user **can activate notifications without a booking** — if no profile is saved, the page asks for a phone inline, subscribes with it, and persists it via `useClientProfile` so future bookings link up; with a saved profile it auto-prompts on entry. Requires HTTPS/PWA (works in production, not over plain HTTP). VAPID keys via `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY`
+- **Admin access**: the admin panel has no visible link on the landing — the header **logo links to `/admin/login`** (hidden entry). Inside `AdminLayout.vue`, a **"Ver la web"** link in the sidebar footer (above "Cerrar sesión") returns to the public landing (`/`); the mobile drawer reserves the bottom tab-bar height + safe-area so its footer isn't covered on iPhone
 - **Availability algorithm**: bookable start times step by the shift's `slot_interval_minutes` (configurable per day in admin Horarios; default 60, min 15 enforced in schema + a hard floor in the generator loop to prevent a 0-interval infinite loop). Slot length = service duration. Filters past times, booked appointments, and blocked slots
 - **Brand colors**: `#000000` (primary), `#ffffff` (background) — Apple-inspired B&W palette defined in `tailwind.config.js`
 - **Capacitor appId**: `com.cellarstudio.app`, webDir: `dist`
