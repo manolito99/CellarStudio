@@ -26,11 +26,7 @@
                 Recibe un aviso en tu dispositivo 4 horas antes de cada cita.
               </p>
 
-              <template v-if="!profile">
-                <p class="text-xs text-[#86868b] italic">Reserva una cita para activar las notificaciones.</p>
-              </template>
-
-              <template v-else-if="pushPermission === 'denied'">
+              <template v-if="pushPermission === 'denied'">
                 <p class="text-xs text-red-500">Notificaciones bloqueadas. Actívalas en los ajustes de tu navegador.</p>
               </template>
 
@@ -42,6 +38,19 @@
               </template>
 
               <template v-else>
+                <!-- Sin perfil guardado pedimos el teléfono para vincular los avisos a sus citas -->
+                <div v-if="!profile" class="mb-2">
+                  <input
+                    v-model="phoneInput"
+                    type="tel"
+                    inputmode="tel"
+                    autocomplete="tel"
+                    placeholder="Tu teléfono"
+                    @keyup.enter="subscribe"
+                    class="w-full px-3 py-2 bg-white border border-[#e8e8ed] rounded-lg text-sm text-[#1d1d1f] placeholder-[#b0b0b5] focus:outline-none focus:ring-2 focus:ring-[#1d1d1f]/15 focus:border-[#1d1d1f] transition-all"
+                  />
+                  <p v-if="phoneError" class="text-xs text-red-500 mt-1">{{ phoneError }}</p>
+                </div>
                 <button
                   @click="subscribe"
                   :disabled="subscribing"
@@ -164,7 +173,7 @@ interface NotifItem {
   created_at: string
 }
 
-const { load: loadProfile } = useClientProfile()
+const { load: loadProfile, save: saveProfile } = useClientProfile()
 const profile = ref(loadProfile())
 
 const loading = ref(false)
@@ -172,6 +181,8 @@ const notifications = ref<NotifItem[]>([])
 const pushPermission = ref('default')
 const pushSubscribed = ref(false)
 const subscribing = ref(false)
+const phoneInput = ref('')
+const phoneError = ref('')
 const testSending = ref(false)
 const testResult = ref('')
 
@@ -205,11 +216,27 @@ async function loadNotifications() {
 }
 
 async function subscribe() {
-  if (!profile.value) return
+  // Con perfil usamos su teléfono; sin perfil, el que introduce en el input.
+  let phone = profile.value?.phone
+  if (!phone) {
+    phone = phoneInput.value.trim()
+    if (phone.replace(/\D/g, '').length < 6) {
+      phoneError.value = 'Introduce un teléfono válido'
+      return
+    }
+  }
+  phoneError.value = ''
   subscribing.value = true
-  const ok = await subscribeToPush(profile.value.phone)
+  const ok = await subscribeToPush(phone)
   pushSubscribed.value = ok
   pushPermission.value = 'Notification' in window ? Notification.permission : 'default'
+  // Al activar sin perfil, guardamos el teléfono para vincular futuras citas y
+  // cargar sus notificaciones sin tener que reservar antes.
+  if (ok && !profile.value) {
+    saveProfile({ name: '', phone, email: '' })
+    profile.value = { name: '', phone, email: '' }
+    await loadNotifications()
+  }
   subscribing.value = false
 }
 
