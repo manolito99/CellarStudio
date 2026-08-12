@@ -1,8 +1,16 @@
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="$emit('close')">
+  <!-- Teleport a <body>: dentro de <ion-content> el modal queda atrapado en el
+       contexto de apilamiento de .ion-page (Ionic le pone contain:layout), y la
+       tab bar del AdminLayout lo pinta por encima. Subir el z-index NO sirve
+       (el modal de edicion lo intento con z-[200] y seguia tapado): hay que
+       salir del arbol. Ver CLAUDE.md > "Modales del admin".
+       max-h en dvh, no vh: dvh sigue al viewport visible, asi que al abrirse el
+       teclado el modal encoge y los botones siguen a la vista. -->
+  <Teleport to="body">
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))]" @click.self="$emit('close')">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="$emit('close')" />
 
-    <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[92vh] overflow-y-auto">
+    <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[92dvh] overflow-y-auto">
 
       <!-- Header -->
       <div class="flex items-center justify-between p-4 border-b border-gray-200 sticky top-0 bg-white z-10 rounded-t-2xl">
@@ -163,6 +171,7 @@
 
     </div>
   </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">

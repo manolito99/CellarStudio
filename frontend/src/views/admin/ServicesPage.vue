@@ -108,9 +108,12 @@
       </div>
     </div>
 
-    <!-- Modal -->
-    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div class="bg-white border border-gray-200 rounded-2xl w-full max-w-lg p-6">
+    <!-- Modal. Teleport a <body> + dvh: dentro de <ion-content> la tab bar del
+         AdminLayout tapa los botones cuando se abre el teclado. Mismo patron que
+         AppointmentEditModal.vue. -->
+    <Teleport to="body">
+    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <div class="bg-white border border-gray-200 rounded-2xl w-full max-w-lg p-6 max-h-[90dvh] overflow-y-auto">
         <h2 class="text-xl font-bold text-[#1d1d1f] mb-6">
           {{ editing ? 'Editar servicio' : 'Nuevo servicio' }}
         </h2>
@@ -133,7 +136,9 @@
               <input v-model.number="form.duration_minutes" type="number" required class="w-full px-3 py-2 bg-[#f5f5f7] border border-gray-200 rounded-lg text-[#1d1d1f] focus:border-brand-400 focus:outline-none" />
             </div>
           </div>
-          <div class="flex gap-3 pt-2">
+          <!-- Acciones ancladas: con el teclado abierto el panel scrollea y los
+               botones quedarian por debajo del corte. -->
+          <div class="flex gap-3 pt-3 sticky bottom-0 bg-white -mx-6 px-6 pb-1 border-t border-gray-100">
             <button type="submit" class="flex-1 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-lg transition-colors">
               {{ editing ? 'Guardar' : 'Crear' }}
             </button>
@@ -144,6 +149,7 @@
         </form>
       </div>
     </div>
+    </Teleport>
   </div>
 </template>
 
