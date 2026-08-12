@@ -138,6 +138,9 @@ export const adminApi = {
   getClient(id: string): Promise<Client> {
     return api.get(`/admin/clients/${id}`).then((r) => r.data)
   },
+  createClient(data: Record<string, unknown>): Promise<Client> {
+    return api.post('/admin/clients/', data).then((r) => r.data)
+  },
   updateClient(id: string, data: Record<string, unknown>) {
     return api.put(`/admin/clients/${id}`, data).then((r) => r.data)
   },

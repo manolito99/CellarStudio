@@ -11,6 +11,7 @@ from app.models.client import Client
 from app.models.service import Service
 from app.schemas.appointment import AppointmentCreate
 from app.services.availability_service import get_availability
+from app.services.phone import phone_matches
 
 
 def create_public_appointment(db: Session, data: AppointmentCreate) -> Appointment:
@@ -47,8 +48,16 @@ def create_public_appointment(db: Session, data: AppointmentCreate) -> Appointme
             detail="El horario seleccionado no está disponible",
         )
 
-    # Find or create client
-    client = db.query(Client).filter(Client.phone == data.client_phone).first()
+    # Find or create client. Matching is format-insensitive so a booking made
+    # as "600111222" links to the client the admin registered by hand as
+    # "+34 600 111 222" instead of creating a second record. Prefer an active
+    # row when duplicates already exist in the data.
+    client = (
+        db.query(Client)
+        .filter(phone_matches(Client.phone, data.client_phone))
+        .order_by(Client.deleted_at.is_(None).desc(), Client.created_at)
+        .first()
+    )
     if not client:
         client = Client(
             name=data.client_name,
@@ -94,7 +103,7 @@ def get_my_appointments(db: Session, phone: str, email: str) -> list[Appointment
     client = (
         db.query(Client)
         .filter(
-            Client.phone == phone,
+            phone_matches(Client.phone, phone),
             Client.email == email,
         )
         .first()
@@ -131,7 +140,9 @@ def cancel_my_appointment(
     from sqlalchemy.orm import joinedload as jl
 
     client = (
-        db.query(Client).filter(Client.phone == phone, Client.email == email).first()
+        db.query(Client)
+        .filter(phone_matches(Client.phone, phone), Client.email == email)
+        .first()
     )
     if not client:
         raise HTTPException(
@@ -178,7 +189,9 @@ def modify_my_appointment(
     from sqlalchemy.orm import joinedload as jl
 
     client = (
-        db.query(Client).filter(Client.phone == phone, Client.email == email).first()
+        db.query(Client)
+        .filter(phone_matches(Client.phone, phone), Client.email == email)
+        .first()
     )
     if not client:
         raise HTTPException(

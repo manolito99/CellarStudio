@@ -108,6 +108,7 @@ import { useRouter } from 'vue-router'
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton } from '@ionic/vue'
 import { publicApi, type Service, type Barber, type TimeSlot } from '@/services/publicApi'
 import { useClientProfile } from '@/composables/useClientProfile'
+import { errorMessage } from '@/utils/apiError'
 import StepServices from '@/components/public/booking/StepServices.vue'
 import StepBarber from '@/components/public/booking/StepBarber.vue'
 import StepDateTime from '@/components/public/booking/StepDateTime.vue'
@@ -203,8 +204,10 @@ async function confirmBooking() {
         clientPhone: clientPhone.value,
       },
     })
-  } catch {
-    alert('Error al crear la reserva. Inténtalo de nuevo.')
+  } catch (err) {
+    // Surface the server message: a rejected phone format or an already-taken
+    // slot is actionable, a generic "inténtalo de nuevo" traps the user.
+    alert(errorMessage(err, 'Error al crear la reserva. Inténtalo de nuevo.'))
   } finally {
     submitting.value = false
   }

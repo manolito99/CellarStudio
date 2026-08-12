@@ -4,14 +4,19 @@ from typing import Optional
 from pydantic import BaseModel
 
 from app.schemas.barber import BarberBase
-from app.schemas.client import ClientBase
+from app.schemas.client import ClientBase, EmailTextStr, NameStr, PhoneStr
 from app.schemas.service import ServiceBase
 
 
 class AppointmentCreate(BaseModel):
-    client_name: str
-    client_phone: str
-    client_email: Optional[str] = None
+    # Same constraints as ClientCreate: this endpoint is public and unauthenticated,
+    # and it writes straight into the clients table via find-or-create, so it is the
+    # weakest door into the client records the admin panel manages.
+    client_name: NameStr
+    client_phone: PhoneStr
+    # Not EmailStr: the booking form should not hard-fail on a typo'd address.
+    # Capped because clients.email is VARCHAR(255) — a longer value is a 500.
+    client_email: Optional[EmailTextStr] = None
     barber_id: str
     service_id: str
     date: dt.date

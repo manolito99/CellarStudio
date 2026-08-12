@@ -2,12 +2,21 @@
   <div>
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold text-[#1d1d1f]">Clientes</h1>
-      <button
-        @click="exportCSV"
-        class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-[#1d1d1f] text-sm font-medium rounded-lg border border-gray-200 transition-colors"
-      >
-        Exportar CSV
-      </button>
+      <div class="flex gap-2">
+        <button
+          @click="exportCSV"
+          :disabled="exporting"
+          class="px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 text-[#1d1d1f] text-sm font-medium rounded-lg border border-gray-200 transition-colors"
+        >
+          {{ exporting ? 'Exportando...' : 'Exportar CSV' }}
+        </button>
+        <button
+          @click="openCreate"
+          class="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          Nuevo cliente
+        </button>
+      </div>
     </div>
 
     <!-- Search -->
@@ -19,6 +28,10 @@
         placeholder="Buscar por nombre, teléfono o email..."
         class="w-full max-w-md px-4 py-2 bg-white border border-gray-200 rounded-lg text-[#1d1d1f] placeholder-gray-400 focus:border-brand-400 focus:outline-none"
       />
+    </div>
+
+    <div v-if="listError" class="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
+      {{ listError }}
     </div>
 
     <!-- Escritorio: tabla -->
@@ -130,6 +143,75 @@
       </button>
     </div>
 
+    <!-- Nuevo cliente -->
+    <div v-if="showCreate" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div class="bg-white border border-gray-200 rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+        <h2 class="text-xl font-bold text-[#1d1d1f] mb-6">Nuevo cliente</h2>
+        <form @submit.prevent="saveClient()" class="space-y-4">
+          <div>
+            <label class="block text-sm text-dark-300 mb-1">Nombre</label>
+            <input
+              v-model="form.name"
+              required
+              maxlength="255"
+              class="w-full px-3 py-2 bg-[#f5f5f7] border border-gray-200 rounded-lg text-[#1d1d1f] focus:border-brand-400 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label class="block text-sm text-dark-300 mb-1">Teléfono</label>
+            <input
+              v-model="form.phone"
+              type="tel"
+              required
+              maxlength="50"
+              class="w-full px-3 py-2 bg-[#f5f5f7] border border-gray-200 rounded-lg text-[#1d1d1f] focus:border-brand-400 focus:outline-none"
+            />
+            <p class="text-xs text-dark-500 mt-1">
+              Identifica al cliente: sus reservas y notificaciones se enlazan por este número.
+            </p>
+          </div>
+          <div>
+            <label class="block text-sm text-dark-300 mb-1">Email (opcional)</label>
+            <input
+              v-model="form.email"
+              type="email"
+              maxlength="255"
+              class="w-full px-3 py-2 bg-[#f5f5f7] border border-gray-200 rounded-lg text-[#1d1d1f] focus:border-brand-400 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label class="block text-sm text-dark-300 mb-1">Notas (opcional)</label>
+            <textarea
+              v-model="form.notes"
+              rows="3"
+              maxlength="2000"
+              class="w-full px-3 py-2 bg-[#f5f5f7] border border-gray-200 rounded-lg text-[#1d1d1f] focus:border-brand-400 focus:outline-none resize-none"
+            />
+          </div>
+
+          <p v-if="createError" class="text-sm text-red-500">{{ createError }}</p>
+
+          <div class="flex gap-3 pt-2">
+            <button
+              type="submit"
+              :disabled="saving"
+              class="flex-1 px-4 py-2 bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white font-medium rounded-lg transition-colors"
+            >
+              {{ saving ? 'Creando...' : 'Crear' }}
+            </button>
+            <button
+              type="button"
+              :disabled="saving"
+              @click="showCreate = false"
+              class="px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 text-[#1d1d1f] rounded-lg transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- History Modal -->
     <div v-if="showHistory" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div class="bg-white border border-gray-200 rounded-2xl w-full max-w-2xl p-6 max-h-[80vh] overflow-y-auto">
@@ -170,12 +252,18 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { adminApi, type Client, type Appointment } from '@/services/adminApi'
+import { errorCode, errorMessage } from '@/utils/apiError'
 
 const clients = ref<Client[]>([])
 const search = ref('')
 const page = ref(1)
+const showCreate = ref(false)
+const saving = ref(false)
+const exporting = ref(false)
+const createError = ref('')
+const form = reactive({ name: '', phone: '', email: '', notes: '' })
 const showHistory = ref(false)
 const selectedClient = ref<Client | null>(null)
 const clientHistory = ref<Appointment[]>([])
@@ -198,10 +286,19 @@ function formatTime(t: string): string {
   return t.substring(0, 5)
 }
 
+const listError = ref('')
+
 async function loadClients() {
   const params: Record<string, string | number> = { page: page.value }
   if (search.value) params.search = search.value
-  clients.value = await adminApi.getClients(params)
+  try {
+    clients.value = await adminApi.getClients(params)
+    listError.value = ''
+  } catch (err) {
+    // Without this an expired session renders "No se encontraron clientes",
+    // which is indistinguishable from an empty database.
+    listError.value = errorMessage(err, 'No se pudo cargar el listado de clientes.')
+  }
 }
 
 function debouncedSearch() {
@@ -212,9 +309,72 @@ function debouncedSearch() {
   }, 300)
 }
 
+function openCreate() {
+  form.name = ''
+  form.phone = ''
+  form.email = ''
+  form.notes = ''
+  createError.value = ''
+  saving.value = false
+  showCreate.value = true
+}
+
+async function saveClient(restoreHidden = false) {
+  if (saving.value) return
+  createError.value = ''
+
+  const name = form.name.trim()
+  const phone = form.phone.trim()
+  if (!name || !phone) {
+    createError.value = 'El nombre y el teléfono son obligatorios.'
+    return
+  }
+
+  saving.value = true
+  let created: Client
+  try {
+    // Empty strings are not valid emails for the API: send null instead.
+    created = await adminApi.createClient({
+      name,
+      phone,
+      email: form.email.trim() || null,
+      notes: form.notes.trim() || null,
+      restore_hidden: restoreHidden,
+    })
+  } catch (err) {
+    saving.value = false
+    // The phone belongs to a hidden client: reusing that record keeps its
+    // appointment history and push subscriptions, so it needs a conscious yes.
+    if (errorCode(err) === 'hidden_client') {
+      const message = errorMessage(err, 'Ese teléfono pertenece a un cliente oculto.')
+      if (confirm(`${message}\n\n¿Restaurar esa ficha con los datos nuevos?`)) {
+        await saveClient(true)
+      }
+      return
+    }
+    createError.value = errorMessage(err, 'No se pudo crear el cliente. Inténtalo de nuevo.')
+    return
+  }
+
+  saving.value = false
+  showCreate.value = false
+
+  // Filter by the phone that was just registered. Sorting is by created_at
+  // desc, so a restored client keeps its old date and would otherwise land
+  // pages deep — the admin would see no error and no client.
+  search.value = created.phone
+  page.value = 1
+  await loadClients()
+}
+
 async function viewHistory(client: Client) {
+  try {
+    clientHistory.value = await adminApi.getClientAppointments(client.id)
+  } catch (err) {
+    alert(errorMessage(err, 'No se pudo cargar el historial del cliente.'))
+    return
+  }
   selectedClient.value = client
-  clientHistory.value = await adminApi.getClientAppointments(client.id)
   showHistory.value = true
 }
 
@@ -224,23 +384,56 @@ async function deleteClient(id: string) {
     await adminApi.deleteClient(id)
     await loadClients()
   } catch (err) {
-    const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail
-    alert(typeof detail === 'string' ? detail : 'No se pudo ocultar el cliente.')
+    alert(errorMessage(err, 'No se pudo ocultar el cliente.'))
   }
 }
 
-function exportCSV() {
-  const header = 'Nombre,Teléfono,Email,Registrado\n'
-  const rows = clients.value.map((c) =>
-    `"${c.name}","${c.phone}","${c.email || ''}","${formatDate(c.created_at)}"`,
-  ).join('\n')
-  const blob = new Blob([header + rows], { type: 'text/csv' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'clientes_cellarstudio.csv'
-  a.click()
-  URL.revokeObjectURL(url)
+function csvCell(value: string | null): string {
+  const text = value || ''
+  // Client names come from the public booking form, so an anonymous visitor
+  // can choose them. A leading =, +, - or @ makes Excel/LibreOffice execute
+  // the cell as a formula on open; prefixing a quote neutralises it.
+  const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text
+  // RFC 4180: escape by doubling the quotes, or a name containing " shifts
+  // every following column.
+  return `"${safe.replace(/"/g, '""')}"`
+}
+
+async function exportCSV() {
+  if (exporting.value) return
+  exporting.value = true
+  try {
+    // The table only holds the current page. Walk every page, otherwise the
+    // owner silently gets 20 clients and believes it is the full list.
+    const all: Client[] = []
+    const perPage = 100
+    for (let p = 1; ; p++) {
+      const params: Record<string, string | number> = { page: p, per_page: perPage }
+      if (search.value) params.search = search.value
+      const batch = await adminApi.getClients(params)
+      all.push(...batch)
+      if (batch.length < perPage || p > 200) break
+    }
+
+    const header = 'Nombre,Teléfono,Email,Registrado\n'
+    const rows = all
+      .map((c) =>
+        [csvCell(c.name), csvCell(c.phone), csvCell(c.email), csvCell(formatDate(c.created_at))].join(','),
+      )
+      .join('\r\n')
+    // BOM so Excel on Windows reads it as UTF-8 instead of mangling accents.
+    const blob = new Blob(['﻿' + header + rows], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'clientes_cellarstudio.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (err) {
+    alert(errorMessage(err, 'No se pudo exportar el listado.'))
+  } finally {
+    exporting.value = false
+  }
 }
 
 onMounted(loadClients)
