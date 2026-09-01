@@ -198,20 +198,29 @@
       </div>
 
       <!-- Actions -->
-      <div class="flex items-center justify-end gap-2 p-4 border-t border-gray-200 sticky bottom-0 bg-white rounded-b-2xl">
-        <button
-          @click="$emit('close')"
-          class="px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          Cancelar
-        </button>
-        <button
-          @click="handleCreate"
-          :disabled="!isValid || saving"
-          class="px-5 py-2 text-sm font-semibold text-white bg-black rounded-lg hover:bg-gray-800 active:bg-gray-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {{ saving ? 'Creando...' : 'Crear cita' }}
-        </button>
+      <div class="p-4 border-t border-gray-200 sticky bottom-0 bg-white rounded-b-2xl">
+        <!-- Que falta: el boton se quedaba gris y mudo, sin decir por que. Con
+             un solo barbero en la lista el desplegable seguia en "Selecciona
+             un barbero", asi que parecia que el boton no respondia. -->
+        <p v-if="missingLabel && !saving" class="mb-2 text-xs text-gray-500 text-right">
+          {{ missingLabel }}
+        </p>
+
+        <div class="flex items-center justify-end gap-2">
+          <button
+            @click="$emit('close')"
+            class="px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            @click="handleCreate"
+            :disabled="!isValid || saving"
+            class="px-5 py-2 text-sm font-semibold text-white bg-black rounded-lg hover:bg-gray-800 active:bg-gray-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {{ saving ? 'Creando...' : 'Crear cita' }}
+          </button>
+        </div>
       </div>
 
     </div>
@@ -369,6 +378,19 @@ const isValid = computed(() =>
   !!form.start_time
 )
 
+const missingLabel = computed(() => {
+  const missing: string[] = []
+  if (!selectedClient.value) missing.push('el cliente')
+  if (!form.service_id)      missing.push('el servicio')
+  if (!form.barber_id)       missing.push('el barbero')
+  if (!form.date)            missing.push('la fecha')
+  if (!form.start_time)      missing.push('la hora')
+
+  if (missing.length === 0) return ''
+  if (missing.length === 1) return `Falta ${missing[0]}.`
+  return `Faltan ${missing.slice(0, -1).join(', ')} y ${missing[missing.length - 1]}.`
+})
+
 async function handleCreate() {
   if (!isValid.value || saving.value) return
   saving.value   = true
@@ -402,6 +424,11 @@ onMounted(async () => {
     ])
     services.value = s
     barbers.value  = b
+
+    // Con un unico barbero, obligar a desplegar el selector para elegir la
+    // unica opcion posible solo servia para dejar el boton gris.
+    if (barbers.value.length === 1) form.barber_id  = barbers.value[0].id
+    if (services.value.length === 1) form.service_id = services.value[0].id
   } catch {
     // Non-critical — selects will just be empty
   }
