@@ -38,3 +38,24 @@ def phone_matches(column, raw: str | None):
     if len(digits) >= LOCAL_DIGITS:
         return func.right(col_digits, LOCAL_DIGITS) == digits[-LOCAL_DIGITS:]
     return col_digits == digits
+
+
+def phone_contains(column, raw: str | None):
+    """SQLAlchemy predicate: `column` contains the digits of `raw`.
+
+    Search-box counterpart of `phone_matches`, for partial input. Numbers are
+    stored as typed ("634 660 976", "+34635265905"), so an ILIKE against the
+    raw column never finds the number the admin reads off their own phone.
+    Stripping both sides to digits makes the stored format irrelevant.
+
+    Callers must check that `normalize_phone(raw)` is non-empty: with no digits
+    this degenerates into LIKE '%%' and matches every row.
+    """
+    digits = normalize_phone(raw)
+    # Drop the country prefix like `phone_matches` does, or pasting a saved
+    # "+34666700529" would fail to find the client stored as "666 700 529".
+    if len(digits) >= LOCAL_DIGITS:
+        digits = digits[-LOCAL_DIGITS:]
+    # Safe to interpolate: normalize_phone leaves only digits, so the value
+    # cannot carry LIKE wildcards.
+    return func.regexp_replace(column, r"[^0-9]", "", "g").like(f"%{digits}%")

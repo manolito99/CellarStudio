@@ -122,12 +122,32 @@
       </div>
 
       <!-- Footer — siempre visible, botones con área táctil mínima de 44px (Apple HIG) -->
-      <div class="flex-shrink-0 border-t border-gray-200 px-4 py-3">
+      <div class="flex-shrink-0 border-t border-gray-200 px-4 py-3 space-y-2">
+        <p v-if="actionError" class="text-sm text-red-500">{{ actionError }}</p>
+
+        <!-- Cancelar la cita: accion directa y explicita. Antes habia que
+             desplegar el selector de Estado, elegir "Cancelada" y Guardar; el
+             boton del pie que ponia "Cancelar" solo cerraba el dialogo, asi que
+             pulsarlo no hacia absolutamente nada sobre la cita. -->
+        <button
+          v-if="appointment.status !== 'cancelled'"
+          @click="handleCancel"
+          :disabled="saving || cancelling"
+          class="w-full flex items-center justify-center gap-1.5 min-h-[44px] text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 active:bg-red-200 border border-red-200 rounded-xl transition-colors disabled:opacity-50"
+        >
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          {{ cancelling ? 'Cancelando...' : 'Cancelar cita' }}
+        </button>
+        <p v-else class="text-center text-sm font-medium text-red-500 py-1">Esta cita está cancelada</p>
+
         <div class="flex items-center justify-between gap-2">
           <!-- Eliminar -->
           <button
             @click="handleDelete"
-            class="flex items-center gap-1.5 px-3 min-h-[44px] text-sm font-medium text-red-500 hover:bg-red-50 active:bg-red-100 rounded-xl transition-colors"
+            :disabled="saving || cancelling"
+            class="flex items-center gap-1.5 px-3 min-h-[44px] text-sm font-medium text-red-500 hover:bg-red-50 active:bg-red-100 rounded-xl transition-colors disabled:opacity-50"
           >
             <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -135,17 +155,17 @@
             Eliminar
           </button>
 
-          <!-- Cancelar + Guardar -->
+          <!-- Cerrar + Guardar -->
           <div class="flex items-center gap-2">
             <button
               @click="$emit('close')"
               class="px-4 min-h-[44px] text-sm font-medium text-dark-400 hover:bg-gray-100 rounded-xl transition-colors"
             >
-              Cancelar
+              Cerrar
             </button>
             <button
               @click="handleSave"
-              :disabled="saving"
+              :disabled="saving || cancelling"
               class="px-4 min-h-[44px] text-sm font-medium text-white bg-brand-500 hover:bg-brand-600 active:scale-95 rounded-xl transition-all disabled:opacity-50"
             >
               {{ saving ? 'Guardando...' : 'Guardar' }}
@@ -161,6 +181,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { adminApi, type Appointment } from '@/services/adminApi'
+import { errorMessage } from '@/utils/apiError'
 
 const props = defineProps<{
   appointment: Appointment
@@ -173,6 +194,8 @@ const emit = defineEmits<{
 }>()
 
 const saving = ref(false)
+const cancelling = ref(false)
+const actionError = ref('')
 const services = ref<{ id: string; name: string; price: number }[]>([])
 const barbers = ref<{ id: string; name: string }[]>([])
 
@@ -186,8 +209,36 @@ const form = reactive({
   notes: props.appointment.notes || '',
 })
 
+async function handleCancel() {
+  if (cancelling.value || saving.value) return
+  const when = `${formatDate(props.appointment.date)} a las ${props.appointment.start_time.substring(0, 5)}`
+  if (!confirm(`¿Cancelar la cita de ${props.appointment.client.name} del ${when}?`)) return
+
+  cancelling.value = true
+  actionError.value = ''
+  try {
+    // PATCH /status y no PUT: es el unico endpoint que avisa al cliente por
+    // WhatsApp del cambio de estado.
+    await adminApi.updateAppointmentStatus(props.appointment.id, 'cancelled')
+    emit('saved')
+  } catch (err) {
+    actionError.value = errorMessage(err, 'No se pudo cancelar la cita. Inténtalo de nuevo.')
+  } finally {
+    cancelling.value = false
+  }
+}
+
+function formatDate(d: string): string {
+  return new Date(d + 'T12:00:00').toLocaleDateString('es-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  })
+}
+
 async function handleSave() {
   saving.value = true
+  actionError.value = ''
   try {
     const payload: Record<string, unknown> = {}
     if (form.date !== props.appointment.date) payload.date = form.date
@@ -202,15 +253,24 @@ async function handleSave() {
       await adminApi.updateAppointment(props.appointment.id, payload)
     }
     emit('saved')
+  } catch (err) {
+    // Sin esto el error se perdia: el modal se quedaba abierto sin decir nada
+    // y era indistinguible de "no se ha guardado porque no cambie nada".
+    actionError.value = errorMessage(err, 'No se pudieron guardar los cambios. Inténtalo de nuevo.')
   } finally {
     saving.value = false
   }
 }
 
 async function handleDelete() {
-  if (!confirm('¿Eliminar esta cita?')) return
-  await adminApi.deleteAppointment(props.appointment.id)
-  emit('deleted')
+  if (!confirm('¿Eliminar esta cita? Se borrará del historial. Si solo quieres anularla, usa «Cancelar cita».')) return
+  actionError.value = ''
+  try {
+    await adminApi.deleteAppointment(props.appointment.id)
+    emit('deleted')
+  } catch (err) {
+    actionError.value = errorMessage(err, 'No se pudo eliminar la cita. Inténtalo de nuevo.')
+  }
 }
 
 onMounted(async () => {

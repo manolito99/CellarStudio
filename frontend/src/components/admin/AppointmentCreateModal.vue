@@ -61,11 +61,11 @@
             />
             <!-- Dropdown results -->
             <div
-              v-if="clientSearch.length >= 2 && filteredClients.length > 0"
+              v-if="hasTerm && searchResults.length > 0"
               class="absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"
             >
               <button
-                v-for="c in filteredClients"
+                v-for="c in searchResults"
                 :key="c.id"
                 @click="selectClient(c)"
                 class="w-full text-left px-3 py-2.5 text-sm hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0"
@@ -74,13 +74,58 @@
                 <span class="text-gray-400 ml-2 text-xs">{{ c.phone }}</span>
               </button>
             </div>
-            <!-- No results -->
-            <p
-              v-if="clientSearch.length >= 2 && filteredClients.length === 0"
-              class="mt-1.5 text-xs text-gray-400"
-            >
-              No se encontró ningún cliente con ese nombre o teléfono.
-            </p>
+
+            <!-- Search states -->
+            <p v-if="searching" class="mt-1.5 text-xs text-gray-400">Buscando...</p>
+            <p v-else-if="searchError" class="mt-1.5 text-xs text-red-500">{{ searchError }}</p>
+            <div v-else-if="hasTerm && searchResults.length === 0" class="mt-1.5">
+              <p class="text-xs text-gray-400">No se encontró ningún cliente con ese nombre o teléfono.</p>
+              <button
+                v-if="!showNewClient"
+                @click="openNewClient"
+                class="mt-1.5 text-xs font-semibold text-black underline hover:no-underline"
+              >
+                Crear cliente nuevo
+              </button>
+            </div>
+
+            <!-- Inline new client: without this, a client the search cannot
+                 find is a dead end — the Clientes page rejects the phone with
+                 a 409 and the appointment can never be created. -->
+            <div v-if="showNewClient" class="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg space-y-2">
+              <p class="text-xs font-semibold text-gray-700">Nuevo cliente</p>
+              <input
+                v-model="newClient.name"
+                type="text"
+                placeholder="Nombre"
+                maxlength="255"
+                class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 placeholder-gray-400 focus:border-black focus:outline-none transition-colors"
+              />
+              <input
+                v-model="newClient.phone"
+                type="tel"
+                placeholder="Teléfono"
+                maxlength="50"
+                class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 placeholder-gray-400 focus:border-black focus:outline-none transition-colors"
+              />
+              <p v-if="newClientError" class="text-xs text-red-500">{{ newClientError }}</p>
+              <div class="flex items-center gap-2">
+                <button
+                  @click="createClient()"
+                  :disabled="creatingClient"
+                  class="px-3 py-1.5 text-xs font-semibold text-white bg-black rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-40"
+                >
+                  {{ creatingClient ? 'Creando...' : 'Crear y seleccionar' }}
+                </button>
+                <button
+                  @click="showNewClient = false"
+                  :disabled="creatingClient"
+                  class="px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-40"
+                >
+                  Descartar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -175,40 +220,128 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { adminApi } from '@/services/adminApi'
 import type { Client } from '@/services/adminApi'
+import { errorCode, errorMessage } from '@/utils/apiError'
 
 const emit = defineEmits<{ close: []; saved: [] }>()
 
 // ── Remote data ───────────────────────────────────────────────────────────────
-const services   = ref<{ id: string; name: string; price: number }[]>([])
-const barbers    = ref<{ id: string; name: string }[]>([])
-const allClients = ref<Client[]>([])
+const services = ref<{ id: string; name: string; price: number }[]>([])
+const barbers  = ref<{ id: string; name: string }[]>([])
 
 // ── Client search ─────────────────────────────────────────────────────────────
+// Queried server-side. It used to preload GET /admin/clients/ and filter that
+// array locally, but the endpoint paginates at 20 and sorts by created_at desc:
+// with 134 clients registered, anyone who booked more than a few weeks ago was
+// invisible here and their appointment could not be created at all.
 const clientSearch   = ref('')
 const selectedClient = ref<Client | null>(null)
+const searchResults  = ref<Client[]>([])
+const searching      = ref(false)
+const searchError    = ref('')
 
-const filteredClients = computed(() => {
-  if (clientSearch.value.length < 2) return []
-  const q = clientSearch.value.toLowerCase()
-  return allClients.value
-    .filter(c =>
-      c.name.toLowerCase().includes(q) ||
-      c.phone.includes(clientSearch.value)
-    )
-    .slice(0, 8)
+const hasTerm = computed(() => clientSearch.value.trim().length >= 2)
+
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+let searchSeq = 0
+
+watch(clientSearch, () => {
+  clearTimeout(searchTimer)
+  searchError.value = ''
+  if (!hasTerm.value) {
+    // Invalidate any in-flight request: its result must not repopulate the
+    // dropdown after the box has been cleared.
+    searchSeq++
+    searchResults.value = []
+    searching.value = false
+    return
+  }
+  searching.value = true
+  searchTimer = setTimeout(runSearch, 300)
 })
+
+async function runSearch() {
+  const term = clientSearch.value.trim()
+  const seq = ++searchSeq
+  try {
+    const res = await adminApi.getClients({ search: term, per_page: 20 })
+    if (seq !== searchSeq) return  // a newer keystroke already owns the dropdown
+    searchResults.value = Array.isArray(res) ? res : (res?.items ?? [])
+  } catch (err) {
+    if (seq !== searchSeq) return
+    searchResults.value = []
+    searchError.value = errorMessage(err, 'No se pudo buscar el cliente.')
+  } finally {
+    if (seq === searchSeq) searching.value = false
+  }
+}
 
 function selectClient(c: Client) {
   selectedClient.value = c
-  clientSearch.value   = ''
+  searchSeq++
+  clearTimeout(searchTimer)
+  clientSearch.value  = ''
+  searchResults.value = []
+  showNewClient.value = false
 }
 
 function clearClient() {
   selectedClient.value = null
   clientSearch.value   = ''
+  searchResults.value  = []
+}
+
+// ── Inline client creation ────────────────────────────────────────────────────
+const showNewClient  = ref(false)
+const newClient      = reactive({ name: '', phone: '' })
+const creatingClient = ref(false)
+const newClientError = ref('')
+
+function openNewClient() {
+  const term = clientSearch.value.trim()
+  const looksLikePhone = /^[\d\s+()-]+$/.test(term)
+  newClient.name  = looksLikePhone ? '' : term
+  newClient.phone = looksLikePhone ? term : ''
+  newClientError.value = ''
+  showNewClient.value = true
+}
+
+async function createClient(restoreHidden = false) {
+  if (creatingClient.value) return
+  newClientError.value = ''
+
+  const name  = newClient.name.trim()
+  const phone = newClient.phone.trim()
+  if (!name || !phone) {
+    newClientError.value = 'El nombre y el teléfono son obligatorios.'
+    return
+  }
+
+  creatingClient.value = true
+  let created: Client
+  try {
+    created = await adminApi.createClient({ name, phone, restore_hidden: restoreHidden })
+  } catch (err) {
+    // No finally: the retry below re-enters this function and would bail out
+    // on the `creatingClient` guard.
+    creatingClient.value = false
+    // Same conscious yes as the Clientes page: reusing a hidden client's row
+    // hands the new client their appointment history and push subscriptions.
+    if (errorCode(err) === 'hidden_client') {
+      const message = errorMessage(err, 'Ese teléfono pertenece a un cliente oculto.')
+      if (confirm(`${message}\n\n¿Restaurar esa ficha con los datos nuevos?`)) {
+        await createClient(true)
+      }
+      return
+    }
+    newClientError.value = errorMessage(err, 'No se pudo crear el cliente. Inténtalo de nuevo.')
+    return
+  }
+
+  creatingClient.value = false
+  selectClient(created)
 }
 
 // ── Form ──────────────────────────────────────────────────────────────────────
@@ -260,18 +393,15 @@ async function handleCreate() {
   }
 }
 
-// ── Mount: load selects + clients ─────────────────────────────────────────────
+// ── Mount: load selects ───────────────────────────────────────────────────────
 onMounted(async () => {
   try {
-    const [s, b, c] = await Promise.all([
+    const [s, b] = await Promise.all([
       adminApi.getServices(),
       adminApi.getBarbers(),
-      adminApi.getClients(),
     ])
-    services.value   = s
-    barbers.value    = b
-    // Handle both plain array and paginated responses
-    allClients.value = Array.isArray(c) ? c : (c?.items ?? c?.clients ?? [])
+    services.value = s
+    barbers.value  = b
   } catch {
     // Non-critical — selects will just be empty
   }

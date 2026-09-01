@@ -9,7 +9,7 @@ from app.models.appointment import Appointment
 from app.models.client import Client
 from app.models.user import User
 from app.schemas.client import ClientCreate, ClientResponse, ClientUpdate
-from app.services.phone import phone_matches
+from app.services.phone import normalize_phone, phone_contains, phone_matches
 
 router = APIRouter(prefix="/api/admin/clients", tags=["Admin - Clients"])
 
@@ -43,9 +43,18 @@ def list_clients(
     query = db.query(Client).filter(Client.deleted_at.is_(None))
 
     if search:
+        # Searching by phone has to ignore formatting. Numbers are stored as
+        # typed, so an ILIKE on the raw column misses "634 660 976" when the
+        # admin types the 634660976 they read off their own phone — which is
+        # how the client picker in "Nueva cita" ends up finding nobody.
+        phone_filter = (
+            phone_contains(Client.phone, search)
+            if normalize_phone(search)
+            else Client.phone.ilike(f"%{search}%")
+        )
         query = query.filter(
             Client.name.ilike(f"%{search}%")
-            | Client.phone.ilike(f"%{search}%")
+            | phone_filter
             | Client.email.ilike(f"%{search}%")
         )
 

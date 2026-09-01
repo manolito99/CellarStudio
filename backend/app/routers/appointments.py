@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.dependencies import get_current_user, get_db
 from app.models.appointment import Appointment
+from app.models.barber import Barber
 from app.models.client import Client
 from app.models.service import Service
 from app.models.user import User
@@ -79,6 +80,12 @@ async def create_appointment(
     client = db.query(Client).filter(Client.id == data.client_id).first()
     if not client:
         raise HTTPException(status_code=404, detail="Cliente no encontrado")
+
+    # Sin esto, un barber_id inexistente revienta contra la FK al hacer commit y
+    # el admin recibe un 500 opaco en vez de saber que barbero no vale.
+    barber = db.query(Barber).filter(Barber.id == data.barber_id).first()
+    if not barber:
+        raise HTTPException(status_code=404, detail="Barbero no encontrado")
 
     end_dt = datetime.combine(data.date, data.start_time) + timedelta(
         minutes=service.duration_minutes
