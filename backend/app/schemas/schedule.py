@@ -1,7 +1,7 @@
 import datetime as dt
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 # Bounds for the bookable-slot interval. The lower bound is the critical guard:
 # a 0/negative interval would make the slot generator loop forever (public DoS).
@@ -39,6 +39,16 @@ class BlockedSlotCreate(BaseModel):
     start_time: dt.time
     end_time: dt.time
     reason: Optional[str] = None
+
+    @model_validator(mode="after")
+    def _check_range(self):
+        # An inverted or empty range is a silent no-op, not an error the admin
+        # would ever notice: the overlap test in availability_service
+        # (slot_start < block_end and slot_end > block_start) can never be true
+        # for it, so the "blocked" hour stays bookable.
+        if self.end_time <= self.start_time:
+            raise ValueError("La hora de fin debe ser posterior a la de inicio")
+        return self
 
 
 class BlockedSlotResponse(BaseModel):

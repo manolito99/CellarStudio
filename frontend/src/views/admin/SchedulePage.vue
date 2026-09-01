@@ -174,19 +174,25 @@
           <div v-for="(day, idx) in calendarDays" :key="idx">
             <button
               v-if="day"
-              @click="toggleDay(day)"
-              :disabled="togglingDate === dateStr(day)"
-              class="w-full aspect-square rounded-xl text-sm font-medium transition-all disabled:opacity-60 flex items-center justify-center"
+              @click="openDay(day)"
+              class="w-full aspect-square rounded-xl text-sm font-medium transition-all flex flex-col items-center justify-center gap-0.5"
               :class="dayClass(day)"
             >
               <span>{{ day.getDate() }}</span>
+              <!-- Punto: el dia esta abierto pero tiene horas sueltas bloqueadas -->
+              <span
+                class="w-1.5 h-1.5 rounded-full"
+                :class="partialBlocks(day).length > 0
+                  ? (isDayAvailable(day) ? 'bg-white/80' : 'bg-[#86868b]')
+                  : 'bg-transparent'"
+              />
             </button>
             <div v-else class="w-full aspect-square" />
           </div>
         </div>
 
         <!-- Legend -->
-        <div class="flex items-center gap-5 mt-4 text-xs text-[#86868b]">
+        <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mt-4 text-xs text-[#86868b]">
           <span class="flex items-center gap-1.5">
             <span class="w-3 h-3 rounded-full bg-[#1d1d1f] inline-block"></span>
             Disponible
@@ -195,16 +201,165 @@
             <span class="w-3 h-3 rounded-full bg-[#f5f5f7] border border-gray-300 inline-block"></span>
             No disponible
           </span>
+          <span class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded-full bg-[#1d1d1f] inline-flex items-center justify-center">
+              <span class="w-1 h-1 rounded-full bg-white inline-block"></span>
+            </span>
+            Con horas bloqueadas
+          </span>
         </div>
+
+        <p class="mt-3 text-xs text-[#86868b]">Toca un día para abrirlo, cerrarlo o bloquear horas sueltas.</p>
       </div>
 
     </div>
+
+    <!-- ── Panel del día ────────────────────────────────────────────────────
+         Teleport a <body> + dvh + acciones sticky: dentro de <ion-content> la
+         tab bar del AdminLayout tapa los botones al abrirse el teclado.
+         Ver CLAUDE.md > "Modales del admin". -->
+    <Teleport to="body">
+    <div
+      v-if="selectedDay"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+      @click.self="selectedDay = null"
+    >
+      <div class="absolute inset-0 bg-black/40" @click="selectedDay = null" />
+
+      <div class="relative flex flex-col bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90dvh]">
+
+        <!-- Cabecera -->
+        <div class="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-gray-200">
+          <h2 class="text-base font-bold text-[#1d1d1f] capitalize">{{ selectedDayLabel }}</h2>
+          <button @click="selectedDay = null" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+            <svg class="w-5 h-5 text-[#86868b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Cuerpo -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-5">
+
+          <p v-if="dayError" class="px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+            {{ dayError }}
+          </p>
+
+          <!-- Estado del día -->
+          <div>
+            <p class="text-xs font-medium text-[#86868b] mb-2">Estado del día</p>
+            <button
+              @click="toggleDay(selectedDay)"
+              :disabled="togglingDate !== null"
+              class="w-full min-h-[44px] px-4 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
+              :class="selectedDayOpen
+                ? 'bg-[#f5f5f7] text-[#1d1d1f] hover:bg-[#e8e8ed]'
+                : 'bg-[#1d1d1f] text-white hover:bg-[#3a3a3c]'"
+            >
+              {{ togglingDate !== null ? 'Guardando...' : (selectedDayOpen ? 'Cerrar todo el día' : 'Abrir el día') }}
+            </button>
+            <p class="mt-1.5 text-xs text-[#86868b]">
+              {{ selectedDayOpen ? 'Ahora mismo se puede reservar este día.' : 'Ahora mismo no se puede reservar este día.' }}
+            </p>
+          </div>
+
+          <!-- Horas bloqueadas -->
+          <div v-if="selectedDayOpen">
+            <p class="text-xs font-medium text-[#86868b] mb-2">Horas bloqueadas</p>
+
+            <div v-if="selectedDayBlocks.length === 0" class="text-sm text-[#86868b] mb-3">
+              Ninguna. El día está libre entero.
+            </div>
+
+            <div v-else class="space-y-2 mb-3">
+              <div
+                v-for="b in selectedDayBlocks"
+                :key="b.id"
+                class="flex items-center justify-between gap-2 px-3 py-2 bg-[#f5f5f7] rounded-lg"
+              >
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-[#1d1d1f]">
+                    {{ b.start_time.substring(0, 5) }} – {{ b.end_time.substring(0, 5) }}
+                  </p>
+                  <p v-if="b.reason" class="text-xs text-[#86868b] truncate">{{ b.reason }}</p>
+                </div>
+                <button
+                  @click="removeBlockedSlot(b.id)"
+                  :disabled="deletingBlockId === b.id"
+                  class="flex-shrink-0 p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40"
+                  title="Desbloquear"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Nueva franja -->
+            <div class="pt-3 border-t border-gray-100 space-y-2">
+              <p class="text-xs font-medium text-[#86868b]">Bloquear una franja</p>
+              <div class="flex items-center gap-2">
+                <input
+                  type="time"
+                  v-model="blockForm.start"
+                  step="900"
+                  class="flex-1 min-w-0 px-2 py-2 bg-[#f5f5f7] border border-gray-200 rounded-lg text-sm text-[#1d1d1f] focus:border-[#1d1d1f] focus:outline-none"
+                />
+                <span class="text-[#86868b] text-sm select-none">–</span>
+                <input
+                  type="time"
+                  v-model="blockForm.end"
+                  step="900"
+                  class="flex-1 min-w-0 px-2 py-2 bg-[#f5f5f7] border border-gray-200 rounded-lg text-sm text-[#1d1d1f] focus:border-[#1d1d1f] focus:outline-none"
+                />
+              </div>
+              <input
+                type="text"
+                v-model="blockForm.reason"
+                maxlength="200"
+                placeholder="Motivo (opcional)"
+                class="w-full px-3 py-2 bg-[#f5f5f7] border border-gray-200 rounded-lg text-sm text-[#1d1d1f] placeholder-gray-400 focus:border-[#1d1d1f] focus:outline-none"
+              />
+              <p v-if="blockError" class="text-xs text-red-500">{{ blockError }}</p>
+              <p class="text-xs text-[#86868b]">
+                Solo impide reservas nuevas. Si ya hay una cita en esa franja, sigue en pie: cancélala desde Citas.
+              </p>
+            </div>
+          </div>
+
+          <p v-else class="text-sm text-[#86868b]">
+            El día está cerrado entero, así que no hace falta bloquear horas sueltas.
+          </p>
+        </div>
+
+        <!-- Acciones -->
+        <div class="flex-shrink-0 flex items-center justify-end gap-2 px-4 py-3 border-t border-gray-200">
+          <button
+            @click="selectedDay = null"
+            class="px-4 min-h-[44px] text-sm font-medium text-[#86868b] hover:bg-gray-100 rounded-xl transition-colors"
+          >
+            Cerrar
+          </button>
+          <button
+            v-if="selectedDayOpen"
+            @click="createBlock"
+            :disabled="savingBlock"
+            class="px-4 min-h-[44px] text-sm font-semibold text-white bg-[#1d1d1f] hover:bg-[#3a3a3c] rounded-xl transition-colors disabled:opacity-50"
+          >
+            {{ savingBlock ? 'Bloqueando...' : 'Bloquear franja' }}
+          </button>
+        </div>
+      </div>
+    </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, reactive, ref, onMounted } from 'vue'
 import { adminApi, type ScheduleEntry, type BlockedSlot, type AvailableDay } from '@/services/adminApi'
+import { errorMessage } from '@/utils/apiError'
 
 const DAY_NAMES = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do']
 const DAY_FULL_NAMES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
@@ -394,11 +549,107 @@ async function saveRecurring() {
   }
 }
 
+// ── Panel del día ────────────────────────────────────────────────────────────
+// Tocar un día abre este panel en vez de alternar abierto/cerrado directamente:
+// el toggle solo sabía de días enteros, y no había forma de cerrar una hora
+// suelta aunque la API de blocked-slots siempre aceptó franjas.
+const selectedDay = ref<Date | null>(null)
+const blockForm = reactive({ start: '10:00', end: '11:00', reason: '' })
+const blockError = ref('')
+const dayError = ref('')
+const savingBlock = ref(false)
+const deletingBlockId = ref<string | null>(null)
+
+const selectedDayStr = computed(() => (selectedDay.value ? dateStr(selectedDay.value) : ''))
+
+const selectedDayLabel = computed(() =>
+  selectedDay.value
+    ? selectedDay.value.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+    : ''
+)
+
+const selectedDayOpen = computed(() =>
+  selectedDay.value ? isDayAvailable(selectedDay.value) : false
+)
+
+const selectedDayBlocks = computed(() =>
+  blockedSlots.value
+    .filter(b => b.date === selectedDayStr.value && !isFullDayBlock(b))
+    .sort((a, b) => a.start_time.localeCompare(b.start_time))
+)
+
+/** Franjas sueltas de un día: las que no son el bloqueo de día completo. */
+function partialBlocks(d: Date) {
+  const ds = dateStr(d)
+  return blockedSlots.value.filter(b => b.date === ds && !isFullDayBlock(b))
+}
+
+function addHour(hhmm: string): string {
+  const [h, m] = hhmm.split(':').map(Number)
+  const total = Math.min(h * 60 + m + 60, 23 * 60 + 59)
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+}
+
+function openDay(d: Date) {
+  selectedDay.value = d
+  blockError.value = ''
+  dayError.value = ''
+  // Arranca en el inicio del turno de ese día: lo normal es bloquear la
+  // primera hora, no las 10:00 de un día que empieza a las 9.
+  const cfg = dayConfigs.value.find(c => c.day === weekdayOf(d))
+  const start = cfg?.blocks[0]?.start ?? '10:00'
+  blockForm.start = start
+  blockForm.end = addHour(start)
+  blockForm.reason = ''
+}
+
+async function createBlock() {
+  if (!selectedDay.value || !selectedBarberId.value || savingBlock.value) return
+  blockError.value = ''
+
+  if (blockForm.end <= blockForm.start) {
+    blockError.value = 'La hora de fin debe ser posterior a la de inicio.'
+    return
+  }
+
+  savingBlock.value = true
+  try {
+    const created = await adminApi.createBlockedSlot({
+      barber_id: selectedBarberId.value,
+      date: selectedDayStr.value,
+      start_time: blockForm.start + ':00',
+      end_time: blockForm.end + ':00',
+      reason: blockForm.reason.trim() || null,
+    })
+    blockedSlots.value.push(created)
+    blockForm.reason = ''
+  } catch (err) {
+    blockError.value = errorMessage(err, 'No se pudo bloquear la franja.')
+  } finally {
+    savingBlock.value = false
+  }
+}
+
+async function removeBlockedSlot(id: string) {
+  if (deletingBlockId.value) return
+  deletingBlockId.value = id
+  blockError.value = ''
+  try {
+    await adminApi.deleteBlockedSlot(id)
+    blockedSlots.value = blockedSlots.value.filter(b => b.id !== id)
+  } catch (err) {
+    blockError.value = errorMessage(err, 'No se pudo desbloquear la franja.')
+  } finally {
+    deletingBlockId.value = null
+  }
+}
+
 // ── Toggle individual day ────────────────────────────────────────────────────
 async function toggleDay(d: Date) {
   if (!selectedBarberId.value) return
   const ds = dateStr(d)
   togglingDate.value = ds
+  dayError.value = ''
 
   try {
     // 1. Has a full-day block? → remove it (unblock)
@@ -446,6 +697,10 @@ async function toggleDay(d: Date) {
     )
     availableDays.value.push(...newDays)
 
+  } catch (err) {
+    // Antes fallaba en silencio: el día se quedaba como estaba y no había
+    // manera de saber si el cambio se habia guardado o no.
+    dayError.value = errorMessage(err, 'No se pudo cambiar el estado del día.')
   } finally {
     togglingDate.value = null
   }
